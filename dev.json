@@ -1,0 +1,24 @@
+{
+    "env": "dev",
+    "impl": "gf-user",
+    "service": {
+        "port": "5001",
+        "secret": "jhdaadcgua9342093d!!$%1120",
+        "secure": {
+            "cert": "/etc/ssl/certs/nginx-selfsigned.crt",
+            "key": "/etc/ssl/private/nginx-selfsigned.key"
+        }
+    },
+    "database" : {
+        "drivers": "postgres",
+        "host": "127.0.0.1",
+        "port": "5432",
+        "database": "gf_user",
+        "user": "respect",
+        "password": "elders2020",
+        "executeSchema": true,
+        "secure": {
+            "sslMode": true
+        }
+    }
+}
