@@ -17,9 +17,10 @@ import (
 
 // UserController struct
 type UserController struct {
-	userRepository  *repositories.UserRepository
-	otpRepository   *repositories.OtpRepository
-	rightRepository *repositories.RightRepository
+	userRepository   *repositories.UserRepository
+	otpRepository    *repositories.OtpRepository
+	rightRepository  *repositories.RightRepository
+	notifyRepository *repositories.NotifyRepository
 }
 
 // Init method
@@ -32,6 +33,9 @@ func (c *UserController) Init(db *database.DB) {
 
 	c.rightRepository = &repositories.RightRepository{}
 	c.rightRepository.Init(db)
+
+	c.notifyRepository = &repositories.NotifyRepository{}
+	c.notifyRepository.Init(db)
 }
 
 // Handler method routes to http methods supported
@@ -100,7 +104,7 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 
 	// create default role
 	right := models.Right{}
-	right.UserID = user.ID
+	right.UserID = createdUser.ID
 	_, err = c.rightRepository.CreateDefault(right)
 	if err != nil {
 		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
@@ -113,12 +117,19 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 	otp := models.Otp{}
 	otp.PrepareInput()
 	otp.UserID = createdUser.ID
-	_, err = c.otpRepository.Create(otp)
+	createToken, err := c.otpRepository.Create(otp)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
+	}
+
+	// create alert
+	createdUser.Token = createToken.Token
+	if err := sendOTP(c, createdUser); err != nil {
+		err := errors.New("unexpected error occurred")
+		log.Println(err)
 	}
 
 	result := models.User{}
@@ -211,4 +222,21 @@ func (c *UserController) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Lacation", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, user.ID))
 	responses.Success(w, http.StatusCreated, user)
+}
+
+// sendOTP create alerts
+func sendOTP(c *UserController, createdUser models.User) error {
+	notify := models.Notify{}
+	notify.Operation = "otp"
+	notify.ChannelID = 2
+	notify.Recipient = createdUser.Email
+	notify.UserID = createdUser.ID
+	output := make([]string, 1)
+	output[0] = createdUser.FirstName
+	notify.Param = output
+	_, err := c.notifyRepository.Create(notify)
+	if err != nil {
+		return err
+	}
+	return nil
 }

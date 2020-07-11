@@ -35,9 +35,9 @@ func usersRoute(mux *http.ServeMux, db *database.DB) {
 	userController.Init(db)
 
 	// Initialize routes
-	http.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler))
-	http.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler))
-	http.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler))
-	http.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler))
-	http.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler))
+	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler))
+	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler))
+	mux.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler))
+	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler))
+	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler))
 }

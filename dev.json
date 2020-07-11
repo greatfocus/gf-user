@@ -20,5 +20,16 @@
         "secure": {
             "sslMode": true
         }
+    },
+    "notify" : {
+        "host": "127.0.0.1",
+        "port": "5001",
+        "uri": [
+            {
+                "templateId": 1,
+                "operation": "otp",
+                "uri": "/notify/message"
+            }
+        ]
     }
 }

@@ -68,7 +68,7 @@ func (c *LoginController) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for duplicates
-	userFound, err := c.userRepository.GetByEmail(user.Email)
+	userFound, err := c.userRepository.GetPasswordByEmail(user.Email)
 	if err != nil {
 		derr := errors.New("User does not exist or inactive")
 		log.Printf("Error: %v\n", err)
@@ -115,14 +115,14 @@ func (c *LoginController) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// append user rights
-	rights, err := c.rightRepository.GetRights(userFound.ID)
+	right, err := c.rightRepository.GetRight(userFound.ID)
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 	}
-	user.Rights = rights
+	user.Right = right
 
 	// generate token
-	token, err := jwt.CreateToken(userFound.ID)
+	token, err := jwt.CreateToken(userFound.ID, right.Role)
 	user.JWT = token
 	result := models.User{}
 	result.PrepareOutput(user)

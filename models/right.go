@@ -8,7 +8,7 @@ import (
 // Right struct
 type Right struct {
 	ID        int64     `json:"-"`
-	UserID    int64     `json:"userId,omitempty"`
+	UserID    int64     `json:"-"`
 	RoleID    int64     `json:"roleId,omitempty"`
 	Role      string    `json:"role,omitempty"`
 	ActionID  string    `json:"actionId,omitempty"`

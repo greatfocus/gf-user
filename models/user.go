@@ -22,16 +22,17 @@ type User struct {
 	Password       string    `json:"password,omitempty"`
 	JWT            string    `json:"jwt,omitempty"`
 	Token          int64     `json:"-"`
-	FailedAttempts int64     `json:"failedattempts,omitempty"`
+	FailedAttempts int64     `json:"-"`
 	LastAttempt    time.Time `json:"-"`
 	LastChange     time.Time `json:"-"`
-	ExpiredDate    time.Time `json:"expireddate,omitempty"`
+	ExpiredDate    time.Time `json:"-"`
 	CreatedOn      time.Time `json:"-"`
-	CreatedBy      time.Time `json:"-"`
+	CreatedBy      int64     `json:"-"`
 	UpdatedOn      time.Time `json:"-"`
-	Status         string    `json:"status,omitempty"`
-	Enabled        bool      `json:"enabled,omitempty"`
-	Rights         []Right   `json:"rights,omitempty"`
+	UpdatedBy      int64     `json:"-"`
+	Status         string    `json:"-"`
+	Enabled        bool      `json:"-"`
+	Right          Right     `json:"right,omitempty"`
 }
 
 // PrepareInput initiliazes the User request object
@@ -69,7 +70,7 @@ func (u *User) PrepareOutput(user User) {
 	u.MobileNumber = user.MobileNumber
 	u.Email = user.Email
 	u.JWT = user.JWT
-	u.Rights = user.Rights
+	u.Right = user.Right
 }
 
 // Validate check if request is valid

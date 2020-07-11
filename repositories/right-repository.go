@@ -20,15 +20,9 @@ func (repo *RightRepository) Init(db *database.DB) {
 // CreateDefault method
 func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, error) {
 	statement := `
-	DO $$ 
-	DECLARE
-		roleId INTEGER := (select id from role where name='customer');
-	BEGIN 
 		INSERT INTO rights (roleId, userId, status, deleted, enabled)
-		VALUES
-			(roleId, $1, 'RIGHT.APPROVED', false, true)
+		SELECT id, $1, 'RIGHT.APPROVED', false, true FROM role WHERE name='customer'
 		returning id
-	END $$;
   `
 	var id int64
 	err := repo.db.Conn.QueryRow(statement, right.UserID).Scan(&id)
@@ -40,36 +34,25 @@ func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, er
 	return createdRight, nil
 }
 
-// GetRights method
-func (repo *RightRepository) GetRights(userID int64) ([]models.Right, error) {
+// GetRight method
+func (repo *RightRepository) GetRight(userID int64) (models.Right, error) {
 	query := `
-	select rights.userId, role.id as roleId, role.name as role, actions.id as actionId, actions.name as action
+	select rights.userId, role.id as roleId, role.name as role
 	from rights
 	inner join role on rights.roleId = role.id
-	inner join permission on role.id = permission.roleId
-	inner join action on permission.actionId = action.id
 	where rights.userId = $1 and rights.status = $2 and rights.deleted=false and rights.enabled=true
 	`
-	rows, err := repo.db.Conn.Query(query, userID, "RIGHT.APPROVED")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
+	rows := repo.db.Conn.QueryRow(query, userID, "RIGHT.APPROVED")
 	return getRightsFromRows(rows)
 }
 
 // prepare right row
-func getRightsFromRows(rows *sql.Rows) ([]models.Right, error) {
-	rights := []models.Right{}
-	for rows.Next() {
-		var right models.Right
-		err := rows.Scan(&right.UserID, &right.RoleID, &right.Role, &right.ActionID, &right.Action)
-		if err != nil {
-			return nil, err
-		}
-		rights = append(rights, right)
+func getRightsFromRows(rows *sql.Row) (models.Right, error) {
+	var right models.Right
+	err := rows.Scan(&right.UserID, &right.RoleID, &right.Role)
+	if err != nil {
+		return right, err
 	}
 
-	return rights, nil
+	return right, nil
 }

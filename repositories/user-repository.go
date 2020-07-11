@@ -36,6 +36,23 @@ func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
 	return createdUser, nil
 }
 
+// GetPasswordByEmail method
+func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error) {
+	var user models.User
+	query := `
+	select id, email, password, failedAttempts, lastAttempt, lastChange, status, enabled
+	from users 
+	where email = $1 and deleted=false
+    `
+	row := repo.db.Conn.QueryRow(query, email)
+	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.Status, &user.Enabled)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
 // GetByEmail method
 func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
@@ -45,7 +62,8 @@ func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
 	where email = $1 and deleted=false
     `
 	row := repo.db.Conn.QueryRow(query, email)
-	err := row.Scan(&user.ID, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber, &user.Email)
+	err := row.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
+		&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -104,11 +122,12 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 		lastAttempt=$2, 
 		failedAttempts=$3,
 		lastChange=$4,
-		status=$5		
+		status=$5,
+		enabled=$6		
     where id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.LastChange, user.Status)
+	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.LastChange, user.Status, user.Enabled)
 	if err != nil {
 		return err
 	}
@@ -130,7 +149,7 @@ func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
 	select id, type, firstName, middleName, lastName, mobileNumber, email, failedAttempts, lastAttempt, lastChange, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where deleted=false
-	order BY createdat limit 50 OFFSET $1-1
+	order BY createdOn limit 50 OFFSET $1-1
     `
 	rows, err := repo.db.Conn.Query(query, page)
 	if err != nil {

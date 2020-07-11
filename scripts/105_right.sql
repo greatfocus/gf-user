@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS rights (
 DO $$ 
 DECLARE
 	roleId INTEGER := (select id from role where name='admin');
-	userId INTEGER := (select id from users where email='mucunga90@gmail.com');
+	userId INTEGER := (select id from users where email='muthurimixphone@gmail.com');
 BEGIN 
 	INSERT INTO rights (roleId, userId, status, deleted, enabled)
 	VALUES
