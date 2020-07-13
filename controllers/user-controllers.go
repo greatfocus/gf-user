@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-user/models"
@@ -21,10 +22,11 @@ type UserController struct {
 	otpRepository    *repositories.OtpRepository
 	rightRepository  *repositories.RightRepository
 	notifyRepository *repositories.NotifyRepository
+	config           *config.Config
 }
 
 // Init method
-func (c *UserController) Init(db *database.DB) {
+func (c *UserController) Init(db *database.DB, config *config.Config) {
 	c.userRepository = &repositories.UserRepository{}
 	c.userRepository.Init(db)
 
@@ -36,6 +38,8 @@ func (c *UserController) Init(db *database.DB) {
 
 	c.notifyRepository = &repositories.NotifyRepository{}
 	c.notifyRepository.Init(db)
+
+	c.config = config
 }
 
 // Handler method routes to http methods supported
@@ -227,13 +231,23 @@ func (c *UserController) updateUser(w http.ResponseWriter, r *http.Request) {
 // sendOTP create alerts
 func sendOTP(c *UserController, createdUser models.User) error {
 	notify := models.Notify{}
+	notify.Status = "queue"
 	notify.Operation = "otp"
-	notify.ChannelID = 2
 	notify.Recipient = createdUser.Email
 	notify.UserID = createdUser.ID
 	output := make([]string, 1)
 	output[0] = createdUser.FirstName
 	notify.Param = output
+
+	// look up the templates in the config
+	for i := 0; i < len(c.config.Notify.Operation); i++ {
+		if c.config.Notify.Operation[i].Operation == notify.Operation {
+			notify.ChannelID = c.config.Notify.Operation[i].ChannelID
+			notify.TemplateID = c.config.Notify.Operation[i].TemplateID
+			notify.URI = c.config.Notify.Operation[i].URI
+		}
+	}
+
 	_, err := c.notifyRepository.Create(notify)
 	if err != nil {
 		return err

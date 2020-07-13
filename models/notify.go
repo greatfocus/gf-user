@@ -12,6 +12,7 @@ type Notify struct {
 	Operation  string   `json:"operation,omitempty"`
 	ChannelID  int64    `json:"channelId,omitempty"`
 	Recipient  string   `json:"recipient,omitempty"`
+	URI        string   `json:"uri,omitempty"`
 	Param      []string `json:"param,omitempty"`
 	Status     string   `json:"status,omitempty"`
 	Sent       bool     `json:"sent"`

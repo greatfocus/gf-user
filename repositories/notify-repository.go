@@ -6,6 +6,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
+	"github.com/lib/pq"
 )
 
 // NotifyRepository struct
@@ -21,12 +22,12 @@ func (repo *NotifyRepository) Init(db *database.DB) {
 // Create method
 func (repo *NotifyRepository) Create(notify models.Notify) (models.Notify, error) {
 	statement := `
-    insert into notify (templateId, operation, channelId, recipient, createdBy, param, sent)
-    values ($1, $2, $3, $4, $5, $6)
+    insert into notify (templateId, operation, uri, channelId, recipient, createdBy, param, status, sent)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, notify.TemplateID, notify.Operation, notify.ChannelID, notify.Recipient, notify.UserID, notify.Param, notify.Sent).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, notify.TemplateID, notify.Operation, notify.URI, notify.ChannelID, notify.Recipient, notify.UserID, pq.Array(notify.Param), notify.Status, notify.Sent).Scan(&id)
 	if err != nil {
 		return notify, err
 	}
@@ -38,9 +39,9 @@ func (repo *NotifyRepository) Create(notify models.Notify) (models.Notify, error
 // GetNotification method
 func (repo *NotifyRepository) GetNotification() ([]models.Notify, error) {
 	query := `
-	select id, templateId, operation, channelId, recipient, param, sent
+	select id, templateId, operation, uri, channelId, recipient, param, status, sent
 	from notify
-	where sent=false
+	where sent=false and status='queue'
 	order BY createdOn limit 50 OFFSET 1-1
     `
 	rows, err := repo.db.Conn.Query(query)
@@ -83,7 +84,7 @@ func getNotifyFromRows(rows *sql.Rows) ([]models.Notify, error) {
 	msgs := []models.Notify{}
 	for rows.Next() {
 		var msg models.Notify
-		err := rows.Scan(&msg.ID, &msg.TemplateID, &msg.Operation, &msg.ChannelID, &msg.Recipient, &msg.Param, &msg.Sent)
+		err := rows.Scan(&msg.ID, &msg.TemplateID, &msg.Operation, &msg.URI, &msg.ChannelID, &msg.Recipient, pq.Array(&msg.Param), &msg.Status, &msg.Sent)
 		if err != nil {
 			return nil, err
 		}

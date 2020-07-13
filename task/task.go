@@ -3,11 +3,9 @@ package task
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 
 	"github.com/greatfocus/gf-frame/config"
@@ -22,7 +20,6 @@ type NotifyRequest struct {
 	Port     string `json:"port,omitempty"`
 	Messages []models.Notify
 	Status   []bool
-	URI      []map[string]interface{} `json:"uri,omitempty"`
 }
 
 // Task struct
@@ -46,7 +43,6 @@ func (t *Task) SendNotification() {
 	request := NotifyRequest{
 		Host: t.config.Notify.Host,
 		Port: t.config.Notify.Port,
-		URI:  t.config.Notify.URI,
 	}
 	t.SendNotifications(t.notifyRepository, &request)
 	log.Println("Scheduler_SendQueuedEmails ended")
@@ -76,17 +72,24 @@ func sendBulkNotification(repo *repositories.NotifyRepository, msgs []models.Not
 	var wg sync.WaitGroup
 
 	for i := 0; i < len(request.Messages); i++ {
-		uri := GetURI(i, request.Messages[i], request)
-		if uri == "" {
-			// is a sad place to be
-		} else {
-			wg.Add(1)
-			go SendNotify(i, request, uri, &wg)
-		}
+		wg.Add(1)
+		go UpdateNotify(repo, request.Messages[i])
+		go SendNotify(i, request, &wg)
 	}
 
 	wg.Wait()
 	updateNotifications(repo, msgs, request)
+}
+
+// UpdateNotify change message status
+func UpdateNotify(repo *repositories.NotifyRepository, msgs models.Notify) {
+	// check status of email sent
+	msgs.Status = "processing"
+	err := repo.Update(msgs)
+	if err != nil {
+		log.Println("Failed to update Notification with ID", msgs.ID)
+		log.Println(err)
+	}
 }
 
 // updateMessage change message status
@@ -101,29 +104,13 @@ func updateNotifications(repo *repositories.NotifyRepository, msgs []models.Noti
 	}
 }
 
-// GetURI returns the operations uri
-func GetURI(i int, msg models.Notify, request *NotifyRequest) string {
-	var uri = ""
-	for _, result := range request.URI {
-		v := fmt.Sprintf("%v", result["operation"])
-		templateID := fmt.Sprintf("%d", result["templateId"])
-		if msg.Operation == v {
-			if n, err := strconv.Atoi(templateID); err == nil {
-				request.Messages[i].TemplateID = int64(n)
-				uri = v
-			}
-		}
-	}
-	return uri
-}
-
 // SendNotify creates the messages
-func SendNotify(i int, request *NotifyRequest, uri string, wg *sync.WaitGroup) {
+func SendNotify(i int, request *NotifyRequest, wg *sync.WaitGroup) {
 	reqBody, err := json.Marshal(request.Messages[i])
 	if err != nil {
 		print(err)
 	}
-	resp, err := http.Post(request.Host+":"+uri,
+	resp, err := http.Post(request.Host+":"+request.Port+request.Messages[i].URI,
 		"application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		print(err)

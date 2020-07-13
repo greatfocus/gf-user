@@ -11,14 +11,14 @@ import (
 // Entry point to the solution
 func main() {
 	// Load configurations
-	service := frame.Create("dev.json")
+	server := frame.Create("dev.json")
 
 	// background task
 	task := task.Task{}
-	task.Init(service.DB, service.Config)
-	cron.Every(10).Second().Do(task.SendNotification)
+	task.Init(server.DB, server.Config)
+	cron.Every(30).Second().Do(task.SendNotification)
 	cron.Start()
 
 	// start API service
-	service.Start(router.Router(service.DB))
+	server.Start(router.Router(server.DB, server.Config))
 }

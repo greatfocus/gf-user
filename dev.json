@@ -1,7 +1,7 @@
 {
     "env": "dev",
     "impl": "gf-user",
-    "service": {
+    "server": {
         "port": "5001",
         "secret": "jhdaadcgua9342093d!!$%1120",
         "secure": {
@@ -22,13 +22,14 @@
         }
     },
     "notify" : {
-        "host": "127.0.0.1",
-        "port": "5001",
-        "uri": [
+        "host": "http://localhost",
+        "port": "5002",
+        "operation": [
             {
                 "templateId": 1,
+                "channelId": 1,
                 "operation": "otp",
-                "uri": "/notify/message"
+                "uri": "/notify/template-message"
             }
         ]
     }
