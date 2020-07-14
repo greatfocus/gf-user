@@ -22,12 +22,12 @@ func (repo *NotifyRepository) Init(db *database.DB) {
 // Create method
 func (repo *NotifyRepository) Create(notify models.Notify) (models.Notify, error) {
 	statement := `
-    insert into notify (templateId, operation, uri, channelId, recipient, createdBy, param, status, sent)
+    insert into notify (templateId, operation, uri, channelId, recipient, createdBy, params, status, sent)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, notify.TemplateID, notify.Operation, notify.URI, notify.ChannelID, notify.Recipient, notify.UserID, pq.Array(notify.Param), notify.Status, notify.Sent).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, notify.TemplateID, notify.Operation, notify.URI, notify.ChannelID, notify.Recipient, notify.UserID, pq.Array(notify.Params), notify.Status, notify.Sent).Scan(&id)
 	if err != nil {
 		return notify, err
 	}
@@ -39,7 +39,7 @@ func (repo *NotifyRepository) Create(notify models.Notify) (models.Notify, error
 // GetNotification method
 func (repo *NotifyRepository) GetNotification() ([]models.Notify, error) {
 	query := `
-	select id, templateId, operation, uri, channelId, recipient, param, status, sent
+	select id, templateId, operation, uri, channelId, recipient, params, status, sent
 	from notify
 	where sent=false and status='queue'
 	order BY createdOn limit 50 OFFSET 1-1
@@ -84,7 +84,7 @@ func getNotifyFromRows(rows *sql.Rows) ([]models.Notify, error) {
 	msgs := []models.Notify{}
 	for rows.Next() {
 		var msg models.Notify
-		err := rows.Scan(&msg.ID, &msg.TemplateID, &msg.Operation, &msg.URI, &msg.ChannelID, &msg.Recipient, pq.Array(&msg.Param), &msg.Status, &msg.Sent)
+		err := rows.Scan(&msg.ID, &msg.TemplateID, &msg.Operation, &msg.URI, &msg.ChannelID, &msg.Recipient, pq.Array(&msg.Params), &msg.Status, &msg.Sent)
 		if err != nil {
 			return nil, err
 		}

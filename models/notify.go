@@ -7,15 +7,15 @@ import (
 // Notify struct
 type Notify struct {
 	ID         int64    `json:"id,omitempty"`
-	UserID     int64    `json:"userId,omitempty"`
+	UserID     int64    `json:"-"`
 	TemplateID int64    `json:"templateId,omitempty"`
-	Operation  string   `json:"operation,omitempty"`
+	Operation  string   `json:"-"`
 	ChannelID  int64    `json:"channelId,omitempty"`
 	Recipient  string   `json:"recipient,omitempty"`
-	URI        string   `json:"uri,omitempty"`
-	Param      []string `json:"param,omitempty"`
-	Status     string   `json:"status,omitempty"`
-	Sent       bool     `json:"sent"`
+	URI        string   `json:"-"`
+	Params     []string `json:"params,omitempty"`
+	Status     string   `json:"-"`
+	Sent       bool     `json:"-"`
 }
 
 // PrepareNotify initiliazes the User request object

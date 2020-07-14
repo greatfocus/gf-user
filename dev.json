@@ -26,8 +26,8 @@
         "port": "5002",
         "operation": [
             {
-                "templateId": 1,
-                "channelId": 1,
+                "templateId": 2,
+                "channelId": 2,
                 "operation": "otp",
                 "uri": "/notify/template-message"
             }

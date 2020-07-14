@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
@@ -74,7 +75,7 @@ func sendBulkNotification(repo *repositories.NotifyRepository, msgs []models.Not
 	for i := 0; i < len(request.Messages); i++ {
 		wg.Add(1)
 		go UpdateNotify(repo, request.Messages[i])
-		go SendNotify(i, request, &wg)
+		go SendNotifications(i, request, &wg)
 	}
 
 	wg.Wait()
@@ -104,27 +105,50 @@ func updateNotifications(repo *repositories.NotifyRepository, msgs []models.Noti
 	}
 }
 
-// SendNotify creates the messages
-func SendNotify(i int, request *NotifyRequest, wg *sync.WaitGroup) {
+// SendNotifications send notifications
+func SendNotifications(i int, request *NotifyRequest, wg *sync.WaitGroup) {
 	reqBody, err := json.Marshal(request.Messages[i])
 	if err != nil {
-		print(err)
+		log.Println(err)
+		request.Messages[i].Sent = false
+		request.Messages[i].Status = "queue"
 	}
-	resp, err := http.Post(request.Host+":"+request.Port+request.Messages[i].URI,
-		"application/json", bytes.NewBuffer(reqBody))
+	result := make(chan models.Notify)
+	go func() {
+		select {
+		case <-time.After(time.Second * 60):
+			request.Messages[i].Sent = false
+			request.Messages[i].Status = "queue"
+			log.Println("Scheduler_SendNotifications: timeout occurred, server could potentially lose message")
+			wg.Done()
+		case r := <-result:
+			log.Println("Scheduler_SendNotifications: got response", r)
+			wg.Done()
+		}
+	}()
+	resp, err := http.Post(request.Host+":"+request.Port+request.Messages[i].URI, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		print(err)
+		//under heavy load it might happen
+		//tcp: lookup localhost: device or resource busy
+		log.Println("Scheduler_SendNotifications: Couldn't send a request to server.", err)
+		request.Messages[i].Sent = false
+		request.Messages[i].Status = "queue"
+		return
 	}
-	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		print(err)
+		log.Println(err)
 		request.Messages[i].Sent = false
 		request.Messages[i].Status = "queue"
 	}
 	created := models.Notify{}
 	err = json.Unmarshal(body, &created)
-
+	if err != nil {
+		log.Println(err)
+		request.Messages[i].Sent = false
+		request.Messages[i].Status = "queue"
+	}
 	if created.ID > 0 {
 		request.Messages[i].Sent = true
 		request.Messages[i].Status = "done"
@@ -132,5 +156,7 @@ func SendNotify(i int, request *NotifyRequest, wg *sync.WaitGroup) {
 		request.Messages[i].Sent = false
 		request.Messages[i].Status = "queue"
 	}
-	wg.Done()
+
+	result <- created
+	defer resp.Body.Close()
 }

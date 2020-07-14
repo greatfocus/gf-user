@@ -237,7 +237,7 @@ func sendOTP(c *UserController, createdUser models.User) error {
 	notify.UserID = createdUser.ID
 	output := make([]string, 1)
 	output[0] = createdUser.FirstName
-	notify.Param = output
+	notify.Params = output
 
 	// look up the templates in the config
 	for i := 0; i < len(c.config.Notify.Operation); i++ {
