@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
+	frameRepositories "github.com/greatfocus/gf-frame/repositories"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
@@ -16,17 +18,24 @@ import (
 
 // ForgotPasswordController struct
 type ForgotPasswordController struct {
-	userRepository *repositories.UserRepository
-	otpRepository  *repositories.OtpRepository
+	notifyRepository *frameRepositories.NotifyRepository
+	userRepository   *repositories.UserRepository
+	otpRepository    *repositories.OtpRepository
+	config           *config.Config
 }
 
 // Init method
-func (c *ForgotPasswordController) Init(db *database.DB) {
+func (c *ForgotPasswordController) Init(db *database.DB, config *config.Config) {
 	c.userRepository = &repositories.UserRepository{}
 	c.userRepository.Init(db)
 
 	c.otpRepository = &repositories.OtpRepository{}
 	c.otpRepository.Init(db)
+
+	c.notifyRepository = &frameRepositories.NotifyRepository{}
+	c.notifyRepository.Init(db)
+
+	c.config = config
 }
 
 // Handler method routes to http methods supported
@@ -95,12 +104,19 @@ func (c *ForgotPasswordController) resetPassword(w http.ResponseWriter, r *http.
 	otp := models.Otp{}
 	otp.PrepareInput()
 	otp.UserID = userFound.ID
-	_, err = c.otpRepository.Create(otp)
+	createToken, err := c.otpRepository.Create(otp)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
+	}
+
+	// create alert
+	userFound.Token = createToken.Token
+	if err := sendOTP(c.notifyRepository, c.config, userFound); err != nil {
+		err := errors.New("unexpected error occurred")
+		log.Println(err)
 	}
 
 	result := models.User{}

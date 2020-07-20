@@ -122,7 +122,5 @@ func (c *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Publish event
-
 	responses.Success(w, http.StatusCreated, otp)
 }

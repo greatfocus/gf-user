@@ -31,7 +31,7 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	loginController := controllers.LoginController{}
 	loginController.Init(db)
 	forgotPasswordController := controllers.ForgotPasswordController{}
-	forgotPasswordController.Init(db)
+	forgotPasswordController.Init(db, config)
 	userController := controllers.UserController{}
 	userController.Init(db, config)
 

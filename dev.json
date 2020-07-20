@@ -7,7 +7,10 @@
         "secure": {
             "cert": "/etc/ssl/certs/nginx-selfsigned.crt",
             "key": "/etc/ssl/private/nginx-selfsigned.key"
-        }
+        },
+        "timeout": 30000,
+        "maxRequest": 200,
+        "uploadPath": "/home/muthurimi/go/src/github.com/greatfocus/gf-user/uploads"
     },
     "database" : {
         "drivers": "postgres",
@@ -26,9 +29,9 @@
         "port": "5002",
         "operation": [
             {
-                "templateId": 2,
+                "templateId": 3,
                 "channelId": 2,
-                "operation": "otp",
+                "operation": "email_otp",
                 "uri": "/notify/template-message"
             }
         ]

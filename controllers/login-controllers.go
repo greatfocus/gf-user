@@ -75,6 +75,12 @@ func (c *LoginController) login(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
+	// check for login user status
+	if userFound.Status != "USER.VERIFIED" {
+		derr := errors.New("User not verified")
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
 	if userFound.FailedAttempts > 4 {
 		userFound.Status = "USER.LOCKED"
 		userFound.Enabled = false

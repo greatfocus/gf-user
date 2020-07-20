@@ -11,6 +11,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
+	frameRepositories "github.com/greatfocus/gf-frame/repositories"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
@@ -21,7 +22,7 @@ type UserController struct {
 	userRepository   *repositories.UserRepository
 	otpRepository    *repositories.OtpRepository
 	rightRepository  *repositories.RightRepository
-	notifyRepository *repositories.NotifyRepository
+	notifyRepository *frameRepositories.NotifyRepository
 	config           *config.Config
 }
 
@@ -36,7 +37,7 @@ func (c *UserController) Init(db *database.DB, config *config.Config) {
 	c.rightRepository = &repositories.RightRepository{}
 	c.rightRepository.Init(db)
 
-	c.notifyRepository = &repositories.NotifyRepository{}
+	c.notifyRepository = &frameRepositories.NotifyRepository{}
 	c.notifyRepository.Init(db)
 
 	c.config = config
@@ -131,7 +132,7 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 
 	// create alert
 	createdUser.Token = createToken.Token
-	if err := sendOTP(c, createdUser); err != nil {
+	if err := sendOTP(c.notifyRepository, c.config, createdUser); err != nil {
 		err := errors.New("unexpected error occurred")
 		log.Println(err)
 	}
@@ -229,26 +230,11 @@ func (c *UserController) updateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // sendOTP create alerts
-func sendOTP(c *UserController, createdUser models.User) error {
-	notify := models.Notify{}
-	notify.Status = "queue"
-	notify.Operation = "otp"
-	notify.Recipient = createdUser.Email
-	notify.UserID = createdUser.ID
-	output := make([]string, 1)
-	output[0] = createdUser.FirstName
-	notify.Params = output
-
-	// look up the templates in the config
-	for i := 0; i < len(c.config.Notify.Operation); i++ {
-		if c.config.Notify.Operation[i].Operation == notify.Operation {
-			notify.ChannelID = c.config.Notify.Operation[i].ChannelID
-			notify.TemplateID = c.config.Notify.Operation[i].TemplateID
-			notify.URI = c.config.Notify.Operation[i].URI
-		}
-	}
-
-	_, err := c.notifyRepository.Create(notify)
+func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user models.User) error {
+	output := make([]string, 2)
+	output[0] = user.FirstName
+	output[1] = strconv.Itoa(int(user.Token))
+	err := repo.SendNotification(c, output, user.Email, user.ID, "email_otp")
 	if err != nil {
 		return err
 	}
