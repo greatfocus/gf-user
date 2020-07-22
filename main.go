@@ -10,6 +10,7 @@ import (
 func main() {
 	// Load configurations
 	server := frame.Create("dev.json")
+	server.Cron.Start()
 
 	// start API service
 	server.Start(router.Router(server.DB, server.Config))
