@@ -11,7 +11,7 @@ INSERT INTO role (name, description)
 VALUES
 	('admin', 'Role for admin'),
 	('staff', 'Role for staff'),
-	('agent', 'Role for agent'),	
+	('partner', 'Role for partner'),	
 	('customer', 'Role for customer')
 ON CONFLICT (name) 
 DO NOTHING;

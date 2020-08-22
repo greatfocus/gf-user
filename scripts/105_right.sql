@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS rights (
 	userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 	createdOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updatedOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	status VARCHAR(20) NOT NULL,
 	deleted BOOLEAN NOT NULL default(false),
 	enabled BOOLEAN NOT NULL default(false),
 	UNIQUE(roleId, userId)
@@ -13,11 +12,11 @@ CREATE TABLE IF NOT EXISTS rights (
 DO $$ 
 DECLARE
 	roleId INTEGER := (select id from role where name='admin');
-	userId INTEGER := (select id from users where email='muthurimixphone@gmail.com');
+	userId INTEGER := (select id from users where mobilenumber='0780904371');
 BEGIN 
-	INSERT INTO rights (roleId, userId, status, deleted, enabled)
+	INSERT INTO rights (roleId, userId, deleted, enabled)
 	VALUES
-		(roleId, userId, 'RIGHT.APPROVED', false, true)
+		(roleId, userId, false, true)
 	ON CONFLICT
 	DO NOTHING;
 END $$;
