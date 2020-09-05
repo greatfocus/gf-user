@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS role (
-	id SERIAL PRIMARY KEY,
+	id BIGSERIAL PRIMARY KEY,
 	name VARCHAR(20) NOT NULL,
 	description VARCHAR(100) NOT NULL,
 	createdOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS role (
 
 INSERT INTO role (name, description)
 VALUES
-	('admin', 'Role for admin'),
-	('staff', 'Role for staff'),
-	('partner', 'Role for partner'),	
-	('customer', 'Role for customer')
+	('Admin', 'Role for admin'),
+	('Staff', 'Role for staff'),
+	('Partner', 'Role for partner'),	
+	('Customer', 'Role for customer')
 ON CONFLICT (name) 
 DO NOTHING;

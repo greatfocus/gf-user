@@ -18,14 +18,14 @@ func (repo *OtpRepository) Init(db *database.DB) {
 }
 
 // Create method
-func (repo *OtpRepository) Create(otp models.Otp) (models.Otp, error) {
+func (repo *OtpRepository) Create(otp models.Otp, channel string) (models.Otp, error) {
 	statement := `
-    insert into otp (userId, token, expiredDate)
-    values ($1, $2, $3)
+    insert into otp (userId, token, channel, expiredDate)
+    values ($1, $2, $3, $4)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, otp.UserID, otp.Token, otp.ExpiredDate).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, otp.UserID, otp.Token, channel, otp.ExpiredDate).Scan(&id)
 	if err != nil {
 		return otp, err
 	}

@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-user/services"
+
 	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/middlewares"
@@ -24,16 +26,25 @@ func Router(db *database.DB, config *config.Config) *http.ServeMux {
 
 // usersRoute created all routes and handlers relating to user controller
 func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
+	// initialize services
+	userService := services.UserService{}
+	userService.Init(db, config)
+
+	otpService := services.OtpService{}
+	otpService.Init(db)
+
 	// Initialize controller
+	userController := controllers.UserController{}
+	userController.Init(&userService)
 
 	otpController := controllers.OtpController{}
-	otpController.Init(db)
+	otpController.Init(&otpService)
+
 	loginController := controllers.LoginController{}
-	loginController.Init(db)
+	loginController.Init(&userService)
+
 	forgotPasswordController := controllers.ForgotPasswordController{}
-	forgotPasswordController.Init(db, config)
-	userController := controllers.UserController{}
-	userController.Init(db, config)
+	forgotPasswordController.Init(&userService)
 
 	// Initialize routes
 	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler))

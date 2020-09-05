@@ -20,8 +20,8 @@ func (repo *RightRepository) Init(db *database.DB) {
 // CreateDefault method
 func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, error) {
 	statement := `
-		INSERT INTO rights (roleId, userId, status, deleted, enabled)
-		SELECT id, $1, 'RIGHT.APPROVED', false, true FROM role WHERE name='customer'
+		INSERT INTO rights (roleId, userId, deleted, enabled)
+		SELECT id, $1, false, true FROM role WHERE name='Customer'
 		returning id
   `
 	var id int64
@@ -40,9 +40,9 @@ func (repo *RightRepository) GetRight(userID int64) (models.Right, error) {
 	select rights.userId, role.id as roleId, role.name as role
 	from rights
 	inner join role on rights.roleId = role.id
-	where rights.userId = $1 and rights.status = $2 and rights.deleted=false and rights.enabled=true
+	where rights.userId = $1 and rights.deleted=false and rights.enabled=true
 	`
-	rows := repo.db.Conn.QueryRow(query, userID, "RIGHT.APPROVED")
+	rows := repo.db.Conn.QueryRow(query, userID)
 	return getRightsFromRows(rows)
 }
 

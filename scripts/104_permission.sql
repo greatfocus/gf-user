@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS permission (
-	id SERIAL PRIMARY KEY,
+	id BIGSERIAL PRIMARY KEY,
 	roleId INTEGER NOT NULL REFERENCES role(id) ON DELETE CASCADE,
 	actionId INTEGER NOT NULL REFERENCES action(id) ON DELETE CASCADE,
 	createdOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS permission (
 
 DO $$ 
 DECLARE
-	adminroleid INTEGER := (select id from role where name='admin');
-	staffroleid INTEGER := (select id from role where name='staff');
+	adminroleid INTEGER := (select id from role where name='Admin');
+	staffroleid INTEGER := (select id from role where name='Staff');
 
 	user_create INTEGER := (select id from action where name='user_create');
 	user_activate INTEGER := (select id from action where name='user_activate');

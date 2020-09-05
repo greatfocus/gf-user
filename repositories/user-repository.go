@@ -21,13 +21,12 @@ func (repo *UserRepository) Init(db *database.DB) {
 // CreateUser method
 func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
 	statement := `
-    insert into users (type, firstName, middleName, lastName, mobileNumber, email, password, expiredDate, createdBy, status)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    insert into users (type, email, password, expiredDate, status)
+    values ($1, $2, $3, $4, $5)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, user.Type, user.FirstName, user.MiddleName, user.LastName,
-		user.MobileNumber, user.Email, user.Password, user.ExpiredDate, user.CreatedBy, user.Status).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, user.Type, user.Email, user.Password, user.ExpiredDate, user.Status).Scan(&id)
 	if err != nil {
 		return user, err
 	}
@@ -40,12 +39,12 @@ func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
 func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error) {
 	var user models.User
 	query := `
-	select id, email, password, failedAttempts, lastAttempt, lastChange, status, enabled
+	select id, email, password, failedAttempts, lastAttempt, status, enabled
 	from users 
 	where email = $1 and deleted=false
     `
 	row := repo.db.Conn.QueryRow(query, email)
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.Status, &user.Enabled)
+	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -57,33 +56,18 @@ func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error
 func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
 	query := `
-	select id, type, firstName, middleName, lastName, mobileNumber, email, failedAttempts, lastAttempt, lastChange, expiredDate, createdOn, updatedOn, status, enabled
+	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where email = $1 and deleted=false
     `
 	row := repo.db.Conn.QueryRow(query, email)
-	err := row.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
-		&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
+		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
 
 	return user, nil
-}
-
-// GetByEmailOrMobileNumber method
-func (repo *UserRepository) GetByEmailOrMobileNumber(email string, mobileNumber string) ([]models.User, error) {
-	query := `
-	select id, type, firstName, middleName, lastName, mobileNumber, email, failedAttempts, lastAttempt, lastChange, expiredDate, createdOn, updatedOn, status, enabled
-	from users 
-	where email = $1 or mobileNumber = $2
-	`
-	rows, err := repo.db.Conn.Query(query, email, mobileNumber)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	return getUsersFromRows(rows)
 }
 
 // UpdateUser method
@@ -121,13 +105,12 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 	set 
 		lastAttempt=$2, 
 		failedAttempts=$3,
-		lastChange=$4,
-		status=$5,
-		enabled=$6		
+		status=$4,
+		enabled=$5		
     where id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.LastChange, user.Status, user.Enabled)
+	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.Status, user.Enabled)
 	if err != nil {
 		return err
 	}
@@ -146,7 +129,7 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 // GetUsers method
 func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
 	query := `
-	select id, type, firstName, middleName, lastName, mobileNumber, email, failedAttempts, lastAttempt, lastChange, expiredDate, createdOn, updatedOn, status, enabled
+	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where deleted=false
 	order BY createdOn limit 50 OFFSET $1-1
@@ -160,8 +143,8 @@ func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
 	users := []models.User{}
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
-			&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+		err := rows.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts,
+			&user.LastAttempt, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 		if err != nil {
 			return nil, err
 		}
@@ -175,13 +158,13 @@ func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
 func (repo *UserRepository) GetUser(id int64) (models.User, error) {
 	var user models.User
 	query := `
-	select id, type, firstName, middleName, lastName, mobileNumber, email, failedAttempts, lastAttempt, lastChange, expiredDate, createdOn, updatedOn, status, enabled
+	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where id=$1 and deleted=false and enabled=true
 	`
 	row := repo.db.Conn.QueryRow(query, id)
-	err := row.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
-		&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
+		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -194,8 +177,8 @@ func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
 	users := []models.User{}
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber, &user.Email,
-			&user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+		err := rows.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
+			&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 		if err != nil {
 			return nil, err
 		}

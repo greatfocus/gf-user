@@ -29,7 +29,13 @@
         "port": "5002",
         "operation": [
             {
-                "templateId": 3,
+                "templateId": 1,
+                "channelId": 1,
+                "operation": "sms_otp",
+                "uri": "/notify/template-message"
+            },
+            {
+                "templateId": 2,
                 "channelId": 2,
                 "operation": "email_otp",
                 "uri": "/notify/template-message"

@@ -6,34 +6,27 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-user/models"
-	"github.com/greatfocus/gf-user/repositories"
+	"github.com/greatfocus/gf-user/services"
 )
 
 // OtpController struct
 type OtpController struct {
-	userRepository *repositories.UserRepository
-	otpRepository  *repositories.OtpRepository
+	otpService *services.OtpService
 }
 
 // Init method
-func (c *OtpController) Init(db *database.DB) {
-	c.userRepository = &repositories.UserRepository{}
-	c.userRepository.Init(db)
-
-	c.otpRepository = &repositories.OtpRepository{}
-	c.otpRepository.Init(db)
+func (o *OtpController) Init(otpService *services.OtpService) {
+	o.otpService = otpService
 }
 
 // Handler method routes to http methods supported
-func (c *OtpController) Handler(w http.ResponseWriter, r *http.Request) {
+func (o *OtpController) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		c.validateToken(w, r)
+		o.validateToken(w, r)
 	default:
 		err := errors.New("Invalid Request")
 		responses.Error(w, http.StatusUnprocessableEntity, err)
@@ -42,7 +35,7 @@ func (c *OtpController) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // validateToken method
-func (c *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
+func (o *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 	// Get body from request
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -68,59 +61,11 @@ func (c *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get user via email
-	user := models.User{}
-	user, err = c.userRepository.GetByEmail(otp.Email)
+	// validate token
+	createdOtp, err := o.otpService.ValidateToken(otp)
 	if err != nil {
-		derr := errors.New("kindly initiate forget password request")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-
-	// get token from DB
-	dbOtp, err := c.otpRepository.GetByToken(user.ID, otp.Token)
-	if err != nil {
-		derr := errors.New("token Invalid")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
-		return
-	}
-
-	if dbOtp.ID == 0 {
-		derr := errors.New("token Invalid")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
-		return
-	}
-
-	dbOtp.ExpiredDate.Add(time.Minute * 30)
-	if dbOtp.ExpiredDate.Before(time.Now()) {
-		derr := errors.New("Token Expired")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
-		return
-	}
-
-	// activate user and verify token
-	user.Status = "USER.VERIFIED"
-	user.Enabled = true
-	user.FailedAttempts = 0
-	err = c.userRepository.UpdateLoginAttempt(user)
-	if err != nil {
-		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
-		return
-	}
-
-	err = c.otpRepository.Update(dbOtp)
-	if err != nil {
-		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
-		return
-	}
-
-	responses.Success(w, http.StatusCreated, otp)
+	responses.Success(w, http.StatusCreated, createdOtp)
 }
