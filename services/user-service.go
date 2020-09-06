@@ -242,7 +242,7 @@ func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 
 // sendOTP create alerts
 func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user models.User) error {
-	output := make([]string, 2)
+	output := make([]string, 1)
 	output[0] = strconv.Itoa(int(user.Token))
 	err := repo.SendNotification(c, output, user.Email, user.ID, "email_otp")
 	if err != nil {
