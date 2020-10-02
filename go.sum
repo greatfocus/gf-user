@@ -37,6 +37,12 @@ github.com/greatfocus/gf-frame v1.5.1 h1:il9zFPQwI3OKPHAs0s5TjWywKxYjmdAWcynLLyh
 github.com/greatfocus/gf-frame v1.5.1/go.mod h1:5eqSB5srdtHmMuyCdP2lA8dVoEmKFfPNIwnw9xSFegc=
 github.com/greatfocus/gf-frame v1.5.4-0.20200906185047-9c8762bf506c h1:sGgPWSYZwT5GaTm4SU14Nrp4lMaSEhVvICXjQhfa6A0=
 github.com/greatfocus/gf-frame v1.5.4-0.20200906185047-9c8762bf506c/go.mod h1:5eqSB5srdtHmMuyCdP2lA8dVoEmKFfPNIwnw9xSFegc=
+github.com/greatfocus/gf-frame v1.5.5 h1:Untj1e7+JJd2t2fS03L+Jt1pmV7Ryam9FM7Oj9mH1fo=
+github.com/greatfocus/gf-frame v1.5.5/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.5.6 h1:Oq9SuhqfPrcBnA3FBFyVVt3fTwydcJu9amHaPhAoeqA=
+github.com/greatfocus/gf-frame v1.5.6/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.5.7 h1:nFDeqWomGsYluLf9DTD/nu9fQ1QgvLUT7swbs/GeEB0=
+github.com/greatfocus/gf-frame v1.5.7/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/lib/pq v1.7.0 h1:h93mCPfUSkaul3Ka/VG8uZdmW1uMHDGxzu0NWHuJmHY=
 github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lib/pq v1.7.1 h1:FvD5XTVTDt+KON6oIoOmHq6B6HzGuYEhuTMpEG0yuBQ=
@@ -50,3 +56,5 @@ golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e h1:EHBhcS0mlXEAVwNyO2dLfjToGsyY4j24pTs2ScHnX7s=
+golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=

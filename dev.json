@@ -10,7 +10,8 @@
         },
         "timeout": 30000,
         "maxRequest": 200,
-        "uploadPath": "/home/muthurimi/go/src/github.com/greatfocus/gf-user/uploads"
+        "uploadPath": "/home/muthurimi/go/src/github.com/greatfocus/gf-user/uploads",
+        "allowedOrigin": "http://localhost:4200"
     },
     "database" : {
         "drivers": "postgres",
