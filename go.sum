@@ -43,6 +43,10 @@ github.com/greatfocus/gf-frame v1.5.6 h1:Oq9SuhqfPrcBnA3FBFyVVt3fTwydcJu9amHaPhA
 github.com/greatfocus/gf-frame v1.5.6/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.5.7 h1:nFDeqWomGsYluLf9DTD/nu9fQ1QgvLUT7swbs/GeEB0=
 github.com/greatfocus/gf-frame v1.5.7/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.5.8 h1:/DuNh86pM9oTYgtg6Ul9gw5T2l7RrhwAiDiTq6yo/vQ=
+github.com/greatfocus/gf-frame v1.5.8/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.5.9 h1:YU4eqJje8sQE1+a/EQmtkkwJ40fvMDngFGWiuuhgK7o=
+github.com/greatfocus/gf-frame v1.5.9/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/lib/pq v1.7.0 h1:h93mCPfUSkaul3Ka/VG8uZdmW1uMHDGxzu0NWHuJmHY=
 github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lib/pq v1.7.1 h1:FvD5XTVTDt+KON6oIoOmHq6B6HzGuYEhuTMpEG0yuBQ=
