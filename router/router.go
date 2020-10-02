@@ -54,10 +54,10 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	personController.Init(&personService)
 
 	// Initialize routes
-	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, config.Server.AllowedOrigin))
-	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, config.Server.AllowedOrigin))
-	mux.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler, config.Server.AllowedOrigin))
-	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler, config.Server.AllowedOrigin))
-	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, config.Server.AllowedOrigin))
-	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, config.Server.AllowedOrigin))
+	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, config.Server.AllowedOrigins))
 }
