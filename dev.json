@@ -15,7 +15,7 @@
             "http://localhost:4200"
         ]
     },
-    "database" : {
+    "database": {
         "drivers": "postgres",
         "host": "127.0.0.1",
         "port": "5432",
@@ -27,12 +27,12 @@
             "sslMode": true
         }
     },
-    "notify" : {
+    "notify": {
         "host": "http://localhost",
         "port": "5002",
         "operation": [
             {
-                "templateId": 2,
+                "templateId": 1,
                 "channelId": 2,
                 "operation": "email_otp",
                 "uri": "/notify/template-message"
