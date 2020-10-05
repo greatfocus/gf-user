@@ -9,6 +9,10 @@ github.com/greatfocus/gf-frame v1.0.0-beta2 h1:JtdHE3kQL0NG4Bnu2nWcFkvMvkjWJba6D
 github.com/greatfocus/gf-frame v1.0.0-beta2/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta3 h1:Snfe/uefoUcAb7k9cV12OGwZk3Gb063xFnx7CW2Rj/A=
 github.com/greatfocus/gf-frame v1.0.0-beta3/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta4 h1:BcmW823mTeZMz7dzJBETfeKajaZzKuBGspLrd1beTCU=
+github.com/greatfocus/gf-frame v1.0.0-beta4/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta5 h1:mHI2D5iNlGQ8iJGHm307hI/wf3oz77bvvll5+Cv2n/E=
+github.com/greatfocus/gf-frame v1.0.0-beta5/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.3.1 h1:Dp0oLyanvDzTMeNPD1zIy58BXMpHHpNFw4fiIF+Yc8M=
 github.com/greatfocus/gf-frame v1.3.1/go.mod h1:BW0UUV65yBOvnYbklR8nF1ikuyBqG6fyXt2K+LDQEe8=
 github.com/greatfocus/gf-frame v1.3.2 h1:KliAwTORxmO7rS4ccsbAngH3BJ/UnkUN7UiFioUDWBs=

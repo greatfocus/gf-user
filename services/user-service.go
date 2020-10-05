@@ -15,13 +15,14 @@ import (
 	"github.com/greatfocus/gf-user/repositories"
 )
 
-// UserConUserServicetroller struct
+// UserService struct
 type UserService struct {
-	userRepository   *repositories.UserRepository
-	otpRepository    *repositories.OtpRepository
-	rightRepository  *repositories.RightRepository
-	notifyRepository *frameRepositories.NotifyRepository
-	config           *config.Config
+	userRepository    *repositories.UserRepository
+	otpRepository     *repositories.OtpRepository
+	rightRepository   *repositories.RightRepository
+	notifyRepository  *frameRepositories.NotifyRepository
+	contactRepository *repositories.ContactRepository
+	config            *config.Config
 }
 
 // Init method
@@ -38,15 +39,18 @@ func (u *UserService) Init(db *database.DB, config *config.Config) {
 	u.notifyRepository = &frameRepositories.NotifyRepository{}
 	u.notifyRepository.Init(db)
 
+	u.contactRepository = &repositories.ContactRepository{}
+	u.contactRepository.Init(db)
+
 	u.config = config
 }
 
-// createUser method
+// CreateUser method
 func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	user.PrepareInput()
 	err := user.Validate("register")
 	if err != nil {
-		derr := errors.New("Invalid request!")
+		derr := errors.New("Invalid request")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -63,7 +67,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	// Create user
 	createdUser, err := u.userRepository.CreateUser(user)
 	if err != nil {
-		derr := errors.New("User registration failed!")
+		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -73,7 +77,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	right.UserID = createdUser.ID
 	_, err = u.rightRepository.CreateDefault(right)
 	if err != nil {
-		derr := errors.New("User registration failed!")
+		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -84,7 +88,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	otp.UserID = createdUser.ID
 	createToken, err := u.otpRepository.Create(otp, "email")
 	if err != nil {
-		derr := errors.New("User registration failed!")
+		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -92,7 +96,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	// create alert
 	createdUser.Token = createToken.Token
 	if err := sendOTP(u.notifyRepository, u.config, createdUser); err != nil {
-		derr := errors.New("User registration failed!")
+		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -102,29 +106,29 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	return result, nil
 }
 
-// getuser method
+// GetUser method
 func (u *UserService) GetUser(id int64) (models.User, error) {
 	user, err := u.userRepository.GetUser(id)
 	if err != nil {
-		derr := errors.New("User does not exist!")
+		derr := errors.New("User does not exist")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 	return user, nil
 }
 
-// getusers method
+// GetUsers method
 func (u *UserService) GetUsers(page int64) ([]models.User, error) {
 	user, err := u.userRepository.GetUsers(page)
 	if err != nil {
-		derr := errors.New("Failed to fetch User!")
+		derr := errors.New("Failed to fetch User")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 	return user, nil
 }
 
-// login method
+// Login method
 func (u *UserService) Login(user models.User) (models.User, error) {
 	// check for duplicates
 	userFound, err := u.userRepository.GetPasswordByEmail(user.Email)
@@ -192,7 +196,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 	return result, nil
 }
 
-// resetpassword method
+// ResetPassword method
 func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 	// check for user
 	userFound, err := u.userRepository.GetByEmail(user.Email)
@@ -245,6 +249,48 @@ func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user mo
 	output := make([]string, 1)
 	output[0] = strconv.Itoa(int(user.Token))
 	err := repo.SendNotification(c, output, user.Email, user.ID, "email_otp")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// reachToUs method
+func (u *UserService) reachToUs(contact models.Contact) (models.Contact, error) {
+	err := contact.Validate("contact")
+	if err != nil {
+		derr := errors.New("Invalid request")
+		log.Printf("Error: %v\n", err)
+		return contact, derr
+	}
+
+	// Create request
+	createdRequest, err := u.contactRepository.ReachToUs(contact)
+	if err != nil {
+		derr := errors.New("Contact request failed")
+		log.Printf("Error: %v\n", err)
+		return contact, derr
+	}
+
+	// create alert
+	if err := sendReachToUsMessage(u.notifyRepository, u.config, createdRequest); err != nil {
+		derr := errors.New("User registration failed")
+		log.Printf("Error: %v\n", err)
+		return contact, derr
+	}
+
+	result := models.Contact{}
+	result.PrepareOutput(createdRequest)
+	return result, nil
+}
+
+// sendOTP create alerts
+func sendReachToUsMessage(repo *frameRepositories.NotifyRepository, c *config.Config, contact models.Contact) error {
+	output := make([]string, 3)
+	output[0] = contact.Name
+	output[0] = contact.Email
+	output[0] = contact.Message
+	err := repo.SendNotification(c, output, c.Contact.Email, contact.ID, "contactus_message")
 	if err != nil {
 		return err
 	}

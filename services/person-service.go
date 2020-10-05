@@ -28,7 +28,7 @@ func (p *PersonService) Init(db *database.DB) {
 func (p *PersonService) Create(person models.Person) (models.Person, error) {
 	// create person details
 	person, err := p.personRepository.Create(person)
-	if err != nil {
+	if err == nil {
 		derr := errors.New("User details already exist")
 		log.Printf("Error: %v\n", err)
 		return person, derr
@@ -43,8 +43,8 @@ func (p *PersonService) Create(person models.Person) (models.Person, error) {
 func (p *PersonService) Update(person models.Person) (models.Person, error) {
 	// create person details
 	err := p.personRepository.Update(person)
-	if err != nil {
-		derr := errors.New("User details failed to update!")
+	if err == nil {
+		derr := errors.New("User details failed to update")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}
@@ -54,12 +54,12 @@ func (p *PersonService) Update(person models.Person) (models.Person, error) {
 	return result, nil
 }
 
-// GetByUserId method
+// Get method
 func (p *PersonService) Get(userID int64) (models.Person, error) {
 	// create person details
 	person, err := p.personRepository.GetByUserId(userID)
-	if err != nil {
-		derr := errors.New("User details failed to update!")
+	if err == nil {
+		derr := errors.New("User details failed to update")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}

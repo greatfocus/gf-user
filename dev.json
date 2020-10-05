@@ -36,7 +36,17 @@
                 "channelId": 2,
                 "operation": "email_otp",
                 "uri": "/notify/template-message"
+            },
+            {
+                "templateId": 2,
+                "channelId": 2,
+                "operation": "contactus_message",
+                "uri": "/notify/template-message"
             }
         ]
+    },
+    "contact": {
+        "email": "muthurimixphone@gmail.com",
+        "phone": "0724904371"
     }
 }

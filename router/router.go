@@ -53,6 +53,9 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	personController := controllers.PersonController{}
 	personController.Init(&personService)
 
+	contactController := controllers.ContactController{}
+	contactController.Init(&personService)
+
 	// Initialize routes
 	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, config.Server.AllowedOrigins))
 	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, config.Server.AllowedOrigins))
@@ -60,4 +63,5 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler, config.Server.AllowedOrigins))
 	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, config.Server.AllowedOrigins))
 	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/contact", middlewares.SetMiddlewareJSON(contactController.Handler, config.Server.AllowedOrigins))
 }
