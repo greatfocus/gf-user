@@ -38,7 +38,7 @@
                 "uri": "/notify/template-message"
             },
             {
-                "templateId": 2,
+                "templateId": 15,
                 "channelId": 2,
                 "operation": "contactus_message",
                 "uri": "/notify/template-message"
@@ -46,7 +46,7 @@
         ]
     },
     "contact": {
-        "email": "muthurimixphone@gmail.com",
+        "email": "mucunga90@gmail.com",
         "phone": "0724904371"
     }
 }

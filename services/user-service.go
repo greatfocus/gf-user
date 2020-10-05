@@ -255,8 +255,8 @@ func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user mo
 	return nil
 }
 
-// reachToUs method
-func (u *UserService) reachToUs(contact models.Contact) (models.Contact, error) {
+// ReachToUs method
+func (u *UserService) ReachToUs(contact models.Contact) (models.Contact, error) {
 	err := contact.Validate("contact")
 	if err != nil {
 		derr := errors.New("Invalid request")
@@ -288,8 +288,8 @@ func (u *UserService) reachToUs(contact models.Contact) (models.Contact, error) 
 func sendReachToUsMessage(repo *frameRepositories.NotifyRepository, c *config.Config, contact models.Contact) error {
 	output := make([]string, 3)
 	output[0] = contact.Name
-	output[0] = contact.Email
-	output[0] = contact.Message
+	output[1] = contact.Email
+	output[2] = contact.Message
 	err := repo.SendNotification(c, output, c.Contact.Email, contact.ID, "contactus_message")
 	if err != nil {
 		return err

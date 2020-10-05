@@ -54,7 +54,7 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	personController.Init(&personService)
 
 	contactController := controllers.ContactController{}
-	contactController.Init(&personService)
+	contactController.Init(&userService)
 
 	// Initialize routes
 	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, config.Server.AllowedOrigins))

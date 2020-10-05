@@ -20,8 +20,8 @@ func (repo *ContactRepository) Init(db *database.DB) {
 // ReachToUs method
 func (repo *ContactRepository) ReachToUs(contact models.Contact) (models.Contact, error) {
 	statement := `
-    insert into contactus (name, email, message, status, createdOn, updatedOn)
-    values ($1, $2, $3, 'new', $5, $6)
+    insert into contactus (name, email, message, status, createdOn)
+    values ($1, $2, $3, 'new', $4)
     returning id
   `
 	var id int64

@@ -43,23 +43,23 @@ func (l *ContactController) reachToUs(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
-	user := models.Contact{}
-	err = json.Unmarshal(body, &user)
+	request := models.Contact{}
+	err = json.Unmarshal(body, &request)
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
-	err = user.Validate("contact")
+	err = request.Validate("contact")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	// reachToUs user
-	result, err := l.userService.reachToUs(user)
+	// reachToUs request
+	result, err := l.userService.ReachToUs(request)
 	if err != nil {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
