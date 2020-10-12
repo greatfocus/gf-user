@@ -6,32 +6,34 @@ import (
 
 	"github.com/greatfocus/gf-user/services"
 
-	"github.com/greatfocus/gf-frame/config"
-	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/middlewares"
+	"github.com/greatfocus/gf-frame/server"
 	"github.com/greatfocus/gf-user/controllers"
 )
 
 // Router is exported and used in main.go
-func Router(db *database.DB, config *config.Config) *http.ServeMux {
+func Router(s *server.Server) *http.ServeMux {
 	// create new router
 	mux := http.NewServeMux()
 
 	// users
-	usersRoute(mux, db, config)
+	usersRoute(mux, s)
 
 	log.Println("Created routes with controllers")
 	return mux
 }
 
 // usersRoute created all routes and handlers relating to user controller
-func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
+func usersRoute(mux *http.ServeMux, server *server.Server) {
 	// initialize services
 	userService := services.UserService{}
-	userService.Init(db, config)
+	userService.Init(server)
 
 	otpService := services.OtpService{}
-	otpService.Init(db)
+	otpService.Init(server)
+
+	personService := services.PersonService{}
+	personService.Init(server)
 
 	// Initialize controller
 	userController := controllers.UserController{}
@@ -39,10 +41,6 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 
 	otpController := controllers.OtpController{}
 	otpController.Init(&otpService)
-
-	// initialize services
-	personService := services.PersonService{}
-	personService.Init(db)
 
 	loginController := controllers.LoginController{}
 	loginController.Init(&userService)
@@ -57,11 +55,11 @@ func usersRoute(mux *http.ServeMux, db *database.DB, config *config.Config) {
 	contactController.Init(&userService)
 
 	// Initialize routes
-	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, config.Server.AllowedOrigins))
-	mux.HandleFunc("/user/contact", middlewares.SetMiddlewareJSON(contactController.Handler, config.Server.AllowedOrigins))
+	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, server))
+	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, server))
+	mux.HandleFunc("/user/forgotpassword", middlewares.SetMiddlewareJSON(forgotPasswordController.Handler, server))
+	mux.HandleFunc("/user/login", middlewares.SetMiddlewareJSON(loginController.Handler, server))
+	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, server))
+	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, server))
+	mux.HandleFunc("/user/contact", middlewares.SetMiddlewareJSON(contactController.Handler, server))
 }

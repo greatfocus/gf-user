@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/greatfocus/gf-frame/database"
+	"github.com/greatfocus/gf-frame/server"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
 )
@@ -17,12 +17,12 @@ type OtpService struct {
 }
 
 // Init method
-func (o *OtpService) Init(db *database.DB) {
+func (o *OtpService) Init(s *server.Server) {
 	o.userRepository = &repositories.UserRepository{}
-	o.userRepository.Init(db)
+	o.userRepository.Init(s.DB)
 
 	o.otpRepository = &repositories.OtpRepository{}
-	o.otpRepository.Init(db)
+	o.otpRepository.Init(s.DB)
 }
 
 // ValidateToken method

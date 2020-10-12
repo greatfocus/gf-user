@@ -3,14 +3,18 @@
     "impl": "gf-user",
     "server": {
         "port": "5001",
-        "secret": "jhdaadcgua9342093d!!$%1120",
+        "timeout": 30000,
+        "maxRequest": 200,
+        "uploadPath": "/home/muthurimi/go/src/github.com/greatfocus/gf-user/uploads",
         "secure": {
             "cert": "/etc/ssl/certs/nginx-selfsigned.crt",
             "key": "/etc/ssl/private/nginx-selfsigned.key"
         },
-        "timeout": 30000,
-        "maxRequest": 200,
-        "uploadPath": "/home/muthurimi/go/src/github.com/greatfocus/gf-user/uploads",
+        "jwt": {
+            "secret": "28922DHSderer3244D7832$w$$@CJSH]]DS2",
+            "authorized": true,
+            "minutes": 30
+        },
         "allowedOrigins": [
             "http://localhost:4200"
         ]

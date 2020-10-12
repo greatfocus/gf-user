@@ -51,7 +51,12 @@ func (f *ForgotPasswordController) resetPassword(w http.ResponseWriter, r *http.
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
-	user.PrepareInput()
+	err = user.PrepareInput()
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
 	err = user.Validate("otp")
 	if err != nil {
 		log.Printf("Error: %v\n", err)

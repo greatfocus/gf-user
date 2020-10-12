@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -28,12 +27,14 @@ type User struct {
 }
 
 // PrepareInput initiliazes the User request object
-func (u *User) PrepareInput() {
+func (u *User) PrepareInput() error {
 	// All users have expiry date of 3 months if they don't login
 	var expire = time.Now()
 	expire.AddDate(0, 3, 0)
-	var pass = utils.HashAndSalt([]byte(u.Password))
-	fmt.Println(pass)
+	var pass, err = utils.HashAndSalt([]byte(u.Password))
+	if err != nil {
+		return errors.New("Failed to create hash")
+	}
 
 	u.ID = 0
 	u.Password = pass
@@ -45,6 +46,8 @@ func (u *User) PrepareInput() {
 	u.UpdatedOn = time.Now()
 	u.Enabled = false
 	u.Status = "USER.CREATED"
+
+	return nil
 }
 
 // PrepareOutput initiliazes the User request object

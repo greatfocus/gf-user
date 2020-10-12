@@ -15,7 +15,7 @@ type Person struct {
 	MiddleName   string    `json:"middleName,omitempty"`
 	LastName     string    `json:"lastName,omitempty"`
 	MobileNumber string    `json:"mobileNumber,omitempty"`
-	IdNumber     string    `json:"idNumber,omitempty"`
+	IDNumber     string    `json:"idNumber,omitempty"`
 	CreatedOn    time.Time `json:"-"`
 	UpdatedOn    time.Time `json:"-"`
 }
@@ -55,7 +55,7 @@ func (p *Person) Validate(action string) error {
 		if p.MobileNumber == "" {
 			return errors.New("Required Mobile Number")
 		}
-		if p.IdNumber == "" {
+		if p.IDNumber == "" {
 			return errors.New("Required ID Number")
 		}
 		return nil

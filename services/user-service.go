@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/greatfocus/gf-frame/config"
-	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/jwt"
 	frameRepositories "github.com/greatfocus/gf-frame/repositories"
+	"github.com/greatfocus/gf-frame/server"
 	"github.com/greatfocus/gf-frame/utils"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
@@ -23,32 +23,37 @@ type UserService struct {
 	notifyRepository  *frameRepositories.NotifyRepository
 	contactRepository *repositories.ContactRepository
 	config            *config.Config
+	jwt               *jwt.JWT
 }
 
 // Init method
-func (u *UserService) Init(db *database.DB, config *config.Config) {
+func (u *UserService) Init(s *server.Server) {
 	u.userRepository = &repositories.UserRepository{}
-	u.userRepository.Init(db)
+	u.userRepository.Init(s.DB)
 
 	u.otpRepository = &repositories.OtpRepository{}
-	u.otpRepository.Init(db)
+	u.otpRepository.Init(s.DB)
 
 	u.rightRepository = &repositories.RightRepository{}
-	u.rightRepository.Init(db)
+	u.rightRepository.Init(s.DB)
 
 	u.notifyRepository = &frameRepositories.NotifyRepository{}
-	u.notifyRepository.Init(db)
+	u.notifyRepository.Init(s.DB)
 
 	u.contactRepository = &repositories.ContactRepository{}
-	u.contactRepository.Init(db)
+	u.contactRepository.Init(s.DB)
 
-	u.config = config
+	u.config = s.Config
+	u.jwt = s.JWT
 }
 
 // CreateUser method
 func (u *UserService) CreateUser(user models.User) (models.User, error) {
-	user.PrepareInput()
-	err := user.Validate("register")
+	err := user.PrepareInput()
+	if err != nil {
+		return user, err
+	}
+	err = user.Validate("register")
 	if err != nil {
 		derr := errors.New("Invalid request")
 		log.Printf("Error: %v\n", err)
@@ -161,8 +166,8 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 
 	// verify password
 	userFound.LastAttempt = time.Now()
-	var valid = utils.ComparePasswords(userFound.Password, []byte(user.Password))
-	if !valid {
+	valid, err := utils.ComparePasswords(userFound.Password, []byte(user.Password))
+	if !valid || err != nil {
 		derr := errors.New("username of password is invalid")
 		log.Printf("Error: %v\n", derr)
 		userFound.FailedAttempts = (userFound.FailedAttempts + 1)
@@ -189,7 +194,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 	user.Right = right
 
 	// generate token
-	token, err := jwt.CreateToken(userFound.ID, right.Role)
+	token, err := u.jwt.CreateToken(userFound.ID, right.Role)
 	user.JWT = token
 	result := models.User{}
 	result.PrepareOutput(user)

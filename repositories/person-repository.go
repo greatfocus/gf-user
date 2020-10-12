@@ -25,7 +25,7 @@ func (repo *PersonRepository) Create(person models.Person) (models.Person, error
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, person.UserID, person.CountryID, person.FirstName, person.MiddleName, person.LastName, person.MobileNumber, person.IdNumber, person.UserID, person.UserID).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, person.UserID, person.CountryID, person.FirstName, person.MiddleName, person.LastName, person.MobileNumber, person.IDNumber, person.UserID, person.UserID).Scan(&id)
 	if err != nil {
 		return person, err
 	}
@@ -34,8 +34,8 @@ func (repo *PersonRepository) Create(person models.Person) (models.Person, error
 	return createdPerson, nil
 }
 
-// GetByUserId method
-func (repo *PersonRepository) GetByUserId(userID int64) (models.Person, error) {
+// GetByUserID method
+func (repo *PersonRepository) GetByUserID(userID int64) (models.Person, error) {
 	query := `
 	select id, userId, countryId, firstName, middleName, lastName, mobileNumber, idNumber
 	from person
@@ -43,7 +43,7 @@ func (repo *PersonRepository) GetByUserId(userID int64) (models.Person, error) {
     `
 	row := repo.db.Conn.QueryRow(query, userID)
 	var person models.Person
-	err := row.Scan(&person.ID, &person.UserID, &person.CountryID, &person.FirstName, &person.MiddleName, &person.LastName, &person.MobileNumber, &person.IdNumber)
+	err := row.Scan(&person.ID, &person.UserID, &person.CountryID, &person.FirstName, &person.MiddleName, &person.LastName, &person.MobileNumber, &person.IDNumber)
 	if err != nil {
 		return models.Person{}, err
 	}
@@ -67,7 +67,7 @@ func (repo *PersonRepository) Update(person models.Person) error {
   	`
 
 	res, err := repo.db.Conn.Exec(query, person.ID, person.CountryID, person.FirstName,
-		person.MiddleName, person.LastName, person.MobileNumber, person.IdNumber)
+		person.MiddleName, person.LastName, person.MobileNumber, person.IDNumber)
 	if err != nil {
 		return err
 	}
