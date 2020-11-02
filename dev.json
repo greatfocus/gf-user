@@ -49,8 +49,28 @@
             }
         ]
     },
+    "user" : {
+        "host": "http://localhost",
+        "port": "5001",
+        "operation": [
+            {
+                "operation": "userCheck",
+                "uri": "user/person"
+            }
+        ]
+    },
     "contact": {
         "email": "mucunga90@gmail.com",
         "phone": "0724904371"
+    },
+    "payment": {
+        "mpesa": {
+            "env": 0,
+            "appKey": "rBdngruMwoR7qxedrYHEqsY5saEGWWF0",
+            "appSecret": "BfaHKva1BPwrGGzv",
+            "callBackUrl": "http://192.168.43.230/post/mpesa/callback",
+            "passKey": "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
+            "shortCode": "174379"
+        }
     }
 }
