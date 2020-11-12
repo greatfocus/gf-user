@@ -39,7 +39,7 @@ func (p *PersonController) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// validateToken method
+// Create method
 func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 	// Get body from request
 	body, err := ioutil.ReadAll(r.Body)

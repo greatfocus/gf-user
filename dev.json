@@ -17,6 +17,9 @@
         },
         "allowedOrigins": [
             "http://localhost:4200"
+        ],
+        "allowedIPs": [
+            "localhost"
         ]
     },
     "database": {
@@ -28,7 +31,10 @@
         "password": "elders2020",
         "executeSchema": true,
         "secure": {
-            "sslMode": true
+            "sslMode": true,
+            "encryptionKey": "28922DHSderer3244D7832$w$$@CJSH]]DS2",
+            "cert": "/etc/ssl/postgresql/gf-server-cert.pem",
+            "key": "/etc/ssl/postgresql/gf-server-key.pem"
         }
     },
     "notify": {
