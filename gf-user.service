@@ -1,5 +1,5 @@
 [Unit]
-Description= Instance for sending emails and sms
+Description= User management services
 ConditionPathExists=/home/muthurimi/go/src/github.com/greatfocus/gf-user/gf-user
 After=network.target
 
@@ -11,10 +11,10 @@ LimitNOFILE=1024
 
 Restart=on-failure
 RestartSec=10
-startLimitIntervalSec=60
 
+EnvironmentFile=/etc/sysconfig/respect.env
 WorkingDirectory=/home/muthurimi/go/src/github.com/greatfocus/gf-user/
-ExecStart=/home/muthurimi/go/src/github.com/greatfocus/gf-user/gf-user
+ExecStart=/home/muthurimi/go/src/github.com/greatfocus/gf-user/gf-user ${ARG1}
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
