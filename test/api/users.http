@@ -1,0 +1,47 @@
+### create user
+POST http://localhost:5001/user/register
+Content-Type: application/json
+
+{
+	"type": "customer",
+	"email": "mucunga999@gmail.com",
+	"password": "1234"
+}
+
+### user token verification
+POST http://localhost:5001/user/token
+Content-Type: application/json
+
+{
+	"email": "mucunga999@gmail.com",
+	"token": 41576
+}
+
+### login
+POST http://localhost:5001/user/login
+Content-Type: application/json
+
+{
+	"email": "mucunga999@gmail.com",
+	"password": "1234"
+}
+
+### forgot password
+POST http://localhost:5001/user/forgotpassword
+Content-Type: application/json
+
+{
+	"email": "mucunga999@gmail.com"
+}
+
+### get users
+GET http://localhost:5001/user/users?page=1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+
+### get user
+GET http://localhost:5001/user/users?id=1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+
+
