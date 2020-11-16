@@ -1,6 +1,8 @@
 github.com/dgrijalva/jwt-go v1.0.2/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
+github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/greatfocus/gf-frame v0.0.0-20200627200622-c17b0e46bece h1:bQvVTEvrlBMgp2gAtEnGvBZbQghOhhvMGY3v+hlFIe8=
 github.com/greatfocus/gf-frame v0.0.0-20200627200622-c17b0e46bece/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
 github.com/greatfocus/gf-frame v1.0.0-beta1 h1:UL1RJR98gzqQgRU18uo1QThYMQuJwLYDytC/9QP8Kls=
@@ -27,6 +29,8 @@ github.com/greatfocus/gf-frame v1.0.0-beta32 h1:Nl+Wonrv99VVdbHXoMRnV57+3lgsNzBn
 github.com/greatfocus/gf-frame v1.0.0-beta32/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta33 h1:8cHpwWBzgNApKmhmUhBklR2VmfB2OdtmG6sgwjSSPcM=
 github.com/greatfocus/gf-frame v1.0.0-beta33/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta34 h1:FjV1TeVmPzS7iBl5Iyxx5h0SeUIo5oS14/f8gvUYJyU=
+github.com/greatfocus/gf-frame v1.0.0-beta34/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta4 h1:BcmW823mTeZMz7dzJBETfeKajaZzKuBGspLrd1beTCU=
 github.com/greatfocus/gf-frame v1.0.0-beta4/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta5 h1:mHI2D5iNlGQ8iJGHm307hI/wf3oz77bvvll5+Cv2n/E=

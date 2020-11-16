@@ -1,0 +1,35 @@
+### create client
+POST http://localhost:5001/user/client
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MzgxMjAsInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIyMjZ9.clFPQEmszHrMxjFkHke_foJzw_Ga9R24hB1WIy4t69E
+
+{
+	"email": "mucunga90@gmail.com"
+}
+
+
+### client login
+POST http://localhost:5001/user/client/login
+Content-Type: application/json
+
+{
+	"email": "mucunga90@gmail.com",
+	"clientid": "ee2e931f67574bbe916650ef415a5e1a",
+	"secret": "MANPcQzdWJASQKHAphxC"
+}
+
+
+### Get Clients
+GET http://localhost:5001/user/client?page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MzczODMsInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIyMjZ9.WY__o6GLNytRZvMwbe_JvQkYd-bKDZ8a4F-aRd8zG0Q
+
+
+### Get Client
+GET http://localhost:5001/user/client?id=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MzczODMsInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIyMjZ9.WY__o6GLNytRZvMwbe_JvQkYd-bKDZ8a4F-aRd8zG0Q
+
+
+### Delete Client
+DELETE  http://localhost:5001/user/client?id=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MzczODMsInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIyMjZ9.WY__o6GLNytRZvMwbe_JvQkYd-bKDZ8a4F-aRd8zG0Q
+

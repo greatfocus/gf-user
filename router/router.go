@@ -35,6 +35,9 @@ func usersRoute(mux *http.ServeMux, server *server.Server) {
 	personService := services.PersonService{}
 	personService.Init(server)
 
+	clientService := services.ClientService{}
+	clientService.Init(server)
+
 	// Initialize controller
 	userController := controllers.UserController{}
 	userController.Init(&userService)
@@ -54,6 +57,12 @@ func usersRoute(mux *http.ServeMux, server *server.Server) {
 	contactController := controllers.ContactController{}
 	contactController.Init(&userService)
 
+	clientController := controllers.ClientController{}
+	clientController.Init(&clientService)
+
+	clientAuthController := controllers.ClientAuthController{}
+	clientAuthController.Init(&clientService)
+
 	// Initialize routes
 	mux.HandleFunc("/user/register", middlewares.SetMiddlewareJSON(userController.Handler, server))
 	mux.HandleFunc("/user/token", middlewares.SetMiddlewareJSON(otpController.Handler, server))
@@ -62,4 +71,7 @@ func usersRoute(mux *http.ServeMux, server *server.Server) {
 	mux.HandleFunc("/user/users", middlewares.SetMiddlewareJwt(userController.Handler, server))
 	mux.HandleFunc("/user/person", middlewares.SetMiddlewareJwt(personController.Handler, server))
 	mux.HandleFunc("/user/contact", middlewares.SetMiddlewareJSON(contactController.Handler, server))
+	mux.HandleFunc("/user/client/login", middlewares.SetMiddlewareJSON(clientAuthController.Handler, server))
+	mux.HandleFunc("/user/client", middlewares.SetMiddlewareJwt(clientController.Handler, server))
+
 }

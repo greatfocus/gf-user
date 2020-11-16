@@ -22,7 +22,7 @@ POST http://localhost:5001/user/login
 Content-Type: application/json
 
 {
-	"email": "mucunga999@gmail.com",
+	"email": "mucunga90@gmail.com",
 	"password": "1234"
 }
 
