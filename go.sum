@@ -31,6 +31,14 @@ github.com/greatfocus/gf-frame v1.0.0-beta33 h1:8cHpwWBzgNApKmhmUhBklR2VmfB2Odtm
 github.com/greatfocus/gf-frame v1.0.0-beta33/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta34 h1:FjV1TeVmPzS7iBl5Iyxx5h0SeUIo5oS14/f8gvUYJyU=
 github.com/greatfocus/gf-frame v1.0.0-beta34/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta36 h1:Ah502WOHXnGe42RO5cJqYiUPic/V8FAdzo1BNFZJ5Ck=
+github.com/greatfocus/gf-frame v1.0.0-beta36/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta37 h1:EiWzSs9jtE99dBnMc5O7ItJXypfSl67u9dAcA6jtiR4=
+github.com/greatfocus/gf-frame v1.0.0-beta37/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta38 h1:vjRqWkow+ml58WicQwOJ9IBFrd0nyBb7U3e6PiUbWhE=
+github.com/greatfocus/gf-frame v1.0.0-beta38/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
+github.com/greatfocus/gf-frame v1.0.0-beta39 h1:w7RaB0JNga3i7QIUNbp9yuTboPKpZwRBHdrBiVUzoUI=
+github.com/greatfocus/gf-frame v1.0.0-beta39/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta4 h1:BcmW823mTeZMz7dzJBETfeKajaZzKuBGspLrd1beTCU=
 github.com/greatfocus/gf-frame v1.0.0-beta4/go.mod h1:mAVrDr1OpkplaiHwW+g+hWUEcDXdKvKGamsscoGztgs=
 github.com/greatfocus/gf-frame v1.0.0-beta5 h1:mHI2D5iNlGQ8iJGHm307hI/wf3oz77bvvll5+Cv2n/E=

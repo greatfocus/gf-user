@@ -31,7 +31,7 @@ POST http://localhost:5001/user/forgotpassword
 Content-Type: application/json
 
 {
-	"email": "mucunga999@gmail.com"
+	"email": "mucunga90@gmail.com"
 }
 
 ### get users
