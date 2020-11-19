@@ -58,9 +58,9 @@ func (repo *ClientRepository) Login(client models.Client) (models.Client, error)
 	query := `
 	select id, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
 	from client
-	where email = $1 and clientId = $2 and secret = $3
+	where clientId = $1 and secret = $2
     `
-	row := repo.db.Conn.QueryRow(query, client.Email, client.ClientID, client.Secret)
+	row := repo.db.Conn.QueryRow(query, client.ClientID, client.Secret)
 	err := row.Scan(&client.ID, &client.Email, &client.FailedAttempts,
 		&client.LastAttempt, &client.ExpiredDate, &client.CreatedOn, &client.UpdatedOn, &client.Enabled)
 	if err != nil {

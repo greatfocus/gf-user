@@ -112,6 +112,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 
 	// update attempts
 	found.FailedAttempts = 0
+	found.Authenticated = true
 	err = u.clientRepository.UpdateLoginAttempt(found)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
@@ -120,7 +121,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 	}
 
 	result := models.Client{}
-	result.PrepareOutput(client)
+	result.PrepareOutput(found)
 	return result, nil
 }
 
