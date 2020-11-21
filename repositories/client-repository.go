@@ -39,12 +39,12 @@ func (repo *ClientRepository) Create(client models.Client) (models.Client, error
 func (repo *ClientRepository) GetByEmail(email string) (models.Client, error) {
 	var client models.Client
 	query := `
-	select id, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
+	select id, email, clientId, secret, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
 	from client
 	where email = $1 and deleted=false
     `
 	row := repo.db.Conn.QueryRow(query, email)
-	err := row.Scan(&client.ID, &client.Email, &client.FailedAttempts,
+	err := row.Scan(&client.ID, &client.Email, &client.ClientID, &client.Secret, &client.FailedAttempts,
 		&client.LastAttempt, &client.ExpiredDate, &client.CreatedOn, &client.UpdatedOn, &client.Enabled)
 	if err != nil {
 		return models.Client{}, err

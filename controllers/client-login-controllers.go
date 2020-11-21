@@ -36,6 +36,7 @@ func (l *ClientAuthController) Handler(w http.ResponseWriter, r *http.Request) {
 
 // authenticate method
 func (l *ClientAuthController) authenticate(w http.ResponseWriter, r *http.Request) {
+	// '98590c398a254d2898838e1b17381575', 'ADRtjWLkttBbMQLpMADF'
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")

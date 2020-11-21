@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
 	"type": "customer",
-	"email": "mucunga999@gmail.com",
+	"email": "mucunga90@gmail.com",
 	"password": "1234"
 }
 
@@ -13,8 +13,8 @@ POST http://localhost:5001/user/token
 Content-Type: application/json
 
 {
-	"email": "mucunga999@gmail.com",
-	"token": 41576
+	"email": "mucunga90@gmail.com",
+	"token": 41298
 }
 
 ### login
@@ -37,11 +37,11 @@ Content-Type: application/json
 ### get users
 GET http://localhost:5001/user/users?page=1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
 
 ### get user
 GET http://localhost:5001/user/users?id=1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
 
 

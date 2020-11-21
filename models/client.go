@@ -15,6 +15,8 @@ type Client struct {
 	Email          string    `json:"email,omitempty"`
 	ClientID       string    `json:"clientId,omitempty"`
 	Secret         string    `json:"secret,omitempty"`
+	ClientIDTmp    string    `json:"-"`
+	SecretTmp      string    `json:"-"`
 	FailedAttempts int64     `json:"-"`
 	LastAttempt    time.Time `json:"-"`
 	ExpiredDate    time.Time `json:"-"`
@@ -25,7 +27,7 @@ type Client struct {
 }
 
 // PrepareInput initiliazes the Client request object
-func (u *Client) PrepareInput() {
+func (u *Client) PrepareInput() error {
 	// All users have expiry date of 3 months if they don't login
 	var expire = time.Now()
 	expire.AddDate(0, 3, 0)
@@ -33,11 +35,21 @@ func (u *Client) PrepareInput() {
 	// client id
 	uuidWithHyphen := uuid.New()
 	uuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)
-	u.ClientID = uuid
+	clientID, err := utils.HashAndSalt([]byte(uuid))
+	if err != nil {
+		return errors.New("Failed to create hash")
+	}
+	u.ClientID = clientID
+	u.ClientIDTmp = uuid
 
 	// secret
 	var rand = utils.RandomString(20)
-	u.Secret = rand
+	secret, err := utils.HashAndSalt([]byte(rand))
+	if err != nil {
+		return errors.New("Failed to create hash")
+	}
+	u.Secret = secret
+	u.SecretTmp = rand
 
 	u.FailedAttempts = 0
 	u.LastAttempt = time.Now()
@@ -45,6 +57,8 @@ func (u *Client) PrepareInput() {
 	u.CreatedOn = time.Now()
 	u.UpdatedOn = time.Now()
 	u.Enabled = false
+
+	return nil
 }
 
 // PrepareOutput initiliazes the Client request object
@@ -76,6 +90,9 @@ func (u *Client) Validate(action string) error {
 		}
 		return nil
 	case "auth":
+		if u.Email == "" {
+			return errors.New("Required Email")
+		}
 		if u.ClientID == "" {
 			return errors.New("Required Client ID")
 		}

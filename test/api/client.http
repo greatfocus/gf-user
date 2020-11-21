@@ -1,7 +1,7 @@
 ### create client
 POST http://localhost:5001/user/client
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MzgxMjAsInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIyMjZ9.clFPQEmszHrMxjFkHke_foJzw_Ga9R24hB1WIy4t69E
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTI5NjgsInJvbGUiOiJBZG1pbiIsInVzZXJfaWQiOjF9.x9YEjfWpzK9BvibjFKOYWuSfDNohGNEFcF9CnLx-3as
 
 {
 	"email": "mucunga90@gmail.com"

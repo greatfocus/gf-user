@@ -1,44 +1,43 @@
 ### get person
 GET  http://localhost:5001/user/person?userId=1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
 
 
 ### update person
 PUT  http://localhost:5001/user/person
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
 
 {
-    "id": 1,
-    "userId": 1,
+    "id": 223,
+    "userId": 2359,
     "countryId": 1,
     "firstName": "John",
     "middleName": "Peter",
-    "lastName": "Mucunga",
-    "mobileNumber": "0780904371",
-    "idNumber": "27496388"
+    "lastName": "Adrian",
+    "mobileNumber": "0780904373",
+    "idNumber": "27496390"
 }
 
 ### create person
 POST http://localhost:5001/user/person
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
 
 {
-    "userId": 2143,
+    "userId": 2359,
     "countryId": 1,
-    "firstName": "Flavian",
-    "middleName": "Wanjiru",
-    "lastName": "Nderitu",
-    "mobileNumber": "0780904372",
-    "idNumber": "27496389"
+    "firstName": "John",
+    "middleName": "Peter",
+    "lastName": "Adrian",
+    "mobileNumber": "0780904373",
+    "idNumber": "27496390"
 }
 
 ### contact
 POST http://localhost:5001/user/contact
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU1MTAxOTksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzMTd9.TsDpuZjc5jKB5-dQlRkerYfTxEey0CnXen5DNEqnDfo
 
 {
 	"name": "John Peter",

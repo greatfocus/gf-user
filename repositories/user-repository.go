@@ -172,6 +172,27 @@ func (repo *UserRepository) GetUser(id int64) (models.User, error) {
 	return user, nil
 }
 
+// Delete method
+func (repo *UserRepository) Delete(id int64) error {
+	query := `
+    delete from users where id=$1
+  	`
+	res, err := repo.db.Conn.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return fmt.Errorf("more than 1 record got updated User for %d", id)
+	}
+
+	return nil
+}
+
 // prepare users row
 func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
 	users := []models.User{}

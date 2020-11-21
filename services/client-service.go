@@ -3,8 +3,11 @@ package services
 import (
 	"errors"
 	"log"
-	"time"
 
+	"github.com/greatfocus/gf-frame/utils"
+
+	"github.com/greatfocus/gf-frame/config"
+	frameRepositories "github.com/greatfocus/gf-frame/repositories"
 	"github.com/greatfocus/gf-frame/server"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
@@ -13,17 +16,23 @@ import (
 // ClientService struct
 type ClientService struct {
 	clientRepository *repositories.ClientRepository
+	notifyRepository *frameRepositories.NotifyRepository
+	config           *config.Config
 }
 
 // Init method
 func (u *ClientService) Init(s *server.Server) {
 	u.clientRepository = &repositories.ClientRepository{}
 	u.clientRepository.Init(s.DB)
+
+	u.notifyRepository = &frameRepositories.NotifyRepository{}
+	u.notifyRepository.Init(s.DB)
+
+	u.config = s.Config
 }
 
 // Create method
 func (u *ClientService) Create(client models.Client) (models.Client, error) {
-	client.PrepareInput()
 	err := client.Validate("create")
 	if err != nil {
 		derr := errors.New("Invalid request")
@@ -41,10 +50,19 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	}
 
 	// Create client
+	client.PrepareInput()
 	created, err := u.clientRepository.Create(client)
 	if err != nil {
 		derr := errors.New("Client registration failed")
 		log.Printf("Error: %v\n", err)
+		return client, derr
+	}
+
+	// create alert
+	if err := sendClientCredentials(u.notifyRepository, u.config, client); err != nil {
+		derr := errors.New("Client registration failed")
+		log.Printf("Error: %v\n", err)
+		u.Delete(created.ID)
 		return client, derr
 	}
 
@@ -78,10 +96,30 @@ func (u *ClientService) GetClients(page int64) ([]models.Client, error) {
 // Authenticate method
 func (u *ClientService) Authenticate(client models.Client) (models.Client, error) {
 	// check for duplicates
-	found, err := u.clientRepository.Login(client)
+	found, err := u.clientRepository.GetByEmail(client.Email)
 	if err != nil {
 		derr := errors.New("Client does not exist or inactive")
 		log.Printf("Error: %v\n", err)
+		return client, derr
+	}
+
+	// check client id
+	valid, err := utils.ComparePasswords(found.ClientID, []byte(client.ClientID))
+	if !valid || err != nil {
+		derr := errors.New("Client or Secret is invalid")
+		log.Printf("Error: %v\n", derr)
+		found.FailedAttempts = (found.FailedAttempts + 1)
+		u.clientRepository.UpdateLoginAttempt(found)
+		return client, derr
+	}
+
+	// check secret id
+	valid, err = utils.ComparePasswords(found.Secret, []byte(client.Secret))
+	if !valid || err != nil {
+		derr := errors.New("Client or Secret is invalid")
+		log.Printf("Error: %v\n", derr)
+		found.FailedAttempts = (found.FailedAttempts + 1)
+		u.clientRepository.UpdateLoginAttempt(found)
 		return client, derr
 	}
 
@@ -97,16 +135,6 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 	if found.ID == 0 {
 		derr := errors.New("Client does not exist")
 		log.Printf("Error: %v\n", derr)
-		return client, derr
-	}
-
-	// verify password
-	found.LastAttempt = time.Now()
-	if found.ClientID != client.ClientID && found.Secret != client.Secret {
-		derr := errors.New("Client ID or Secret is invalid")
-		log.Printf("Error: %v\n", derr)
-		found.FailedAttempts = (found.FailedAttempts + 1)
-		u.clientRepository.UpdateLoginAttempt(found)
 		return client, derr
 	}
 
@@ -147,5 +175,17 @@ func (u *ClientService) Delete(id int64) error {
 		return derr
 	}
 
+	return nil
+}
+
+// sendClientCredentials create alerts
+func sendClientCredentials(repo *frameRepositories.NotifyRepository, c *config.Config, client models.Client) error {
+	output := make([]string, 2)
+	output[0] = client.ClientIDTmp
+	output[1] = client.SecretTmp
+	err := repo.SendNotification(c, output, client.Email, client.ID, "client_credentials")
+	if err != nil {
+		return err
+	}
 	return nil
 }

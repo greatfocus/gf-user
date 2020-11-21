@@ -84,6 +84,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err != nil {
 		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
+		u.userRepository.Delete(createdUser.ID)
 		return user, derr
 	}
 
@@ -95,6 +96,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err != nil {
 		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
+		u.userRepository.Delete(createdUser.ID)
 		return user, derr
 	}
 
@@ -103,6 +105,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err := sendOTP(u.notifyRepository, u.config, createdUser); err != nil {
 		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
+		u.userRepository.Delete(createdUser.ID)
 		return user, derr
 	}
 
