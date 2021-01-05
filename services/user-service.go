@@ -29,19 +29,19 @@ type UserService struct {
 // Init method
 func (u *UserService) Init(s *server.Server) {
 	u.userRepository = &repositories.UserRepository{}
-	u.userRepository.Init(s.DB)
+	u.userRepository.Init(s.DB, s.Cache)
 
 	u.otpRepository = &repositories.OtpRepository{}
-	u.otpRepository.Init(s.DB)
+	u.otpRepository.Init(s.DB, s.Cache)
 
 	u.rightRepository = &repositories.RightRepository{}
-	u.rightRepository.Init(s.DB)
+	u.rightRepository.Init(s.DB, s.Cache)
 
 	u.notifyRepository = &frameRepositories.NotifyRepository{}
 	u.notifyRepository.Init(s.DB)
 
 	u.contactRepository = &repositories.ContactRepository{}
-	u.contactRepository.Init(s.DB)
+	u.contactRepository.Init(s.DB, s.Cache)
 
 	u.config = s.Config
 	u.jwt = s.JWT
@@ -106,6 +106,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 		derr := errors.New("User registration failed")
 		log.Printf("Error: %v\n", err)
 		u.userRepository.Delete(createdUser.ID)
+		u.otpRepository.Delete(createToken.ID)
 		return user, derr
 	}
 
@@ -126,8 +127,8 @@ func (u *UserService) GetUser(id int64) (models.User, error) {
 }
 
 // GetUsers method
-func (u *UserService) GetUsers(page int64) ([]models.User, error) {
-	user, err := u.userRepository.GetUsers(page)
+func (u *UserService) GetUsers(lastID int64) ([]models.User, error) {
+	user, err := u.userRepository.GetUsers(lastID)
 	if err != nil {
 		derr := errors.New("Failed to fetch User")
 		log.Printf("Error: %v\n", err)
@@ -146,7 +147,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 		return user, derr
 	}
 	// check for login user status
-	if userFound.Status != "USER.VERIFIED" {
+	if userFound.Status != "USER.VERIFIED" && userFound.Status != "USER.APPROVED" {
 		derr := errors.New("User not verified")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
@@ -256,7 +257,7 @@ func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user models.User) error {
 	output := make([]string, 1)
 	output[0] = strconv.Itoa(int(user.Token))
-	err := repo.SendNotification(c, output, user.Email, user.ID, "email_otp")
+	err := repo.AddNotification(c, output, user.Email, user.ID, "email_otp")
 	if err != nil {
 		return err
 	}
@@ -282,7 +283,7 @@ func (u *UserService) ReachToUs(contact models.Contact) (models.Contact, error) 
 
 	// create alert
 	if err := sendReachToUsMessage(u.notifyRepository, u.config, createdRequest); err != nil {
-		derr := errors.New("User registration failed")
+		derr := errors.New("Request failed")
 		log.Printf("Error: %v\n", err)
 		return contact, derr
 	}
@@ -298,7 +299,7 @@ func sendReachToUsMessage(repo *frameRepositories.NotifyRepository, c *config.Co
 	output[0] = contact.Name
 	output[1] = contact.Email
 	output[2] = contact.Message
-	err := repo.SendNotification(c, output, c.Contact.Email, contact.ID, "contactus_message")
+	err := repo.AddNotification(c, output, c.Integrations.ContactUs.Email, contact.ID, "contactus_message")
 	if err != nil {
 		return err
 	}

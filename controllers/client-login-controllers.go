@@ -29,7 +29,7 @@ func (l *ClientAuthController) Handler(w http.ResponseWriter, r *http.Request) {
 		l.authenticate(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -41,7 +41,7 @@ func (l *ClientAuthController) authenticate(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	client := models.Client{}
@@ -49,7 +49,7 @@ func (l *ClientAuthController) authenticate(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	err = client.Validate("auth")
@@ -65,5 +65,5 @@ func (l *ClientAuthController) authenticate(w http.ResponseWriter, r *http.Reque
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
 }

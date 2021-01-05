@@ -19,10 +19,10 @@ type OtpService struct {
 // Init method
 func (o *OtpService) Init(s *server.Server) {
 	o.userRepository = &repositories.UserRepository{}
-	o.userRepository.Init(s.DB)
+	o.userRepository.Init(s.DB, s.Cache)
 
 	o.otpRepository = &repositories.OtpRepository{}
-	o.otpRepository.Init(s.DB)
+	o.otpRepository.Init(s.DB, s.Cache)
 }
 
 // ValidateToken method

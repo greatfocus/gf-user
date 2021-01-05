@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_otp_verify ON otp USING BTREE(userId, token, verified);

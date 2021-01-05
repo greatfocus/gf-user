@@ -29,7 +29,7 @@ func (l *ContactController) Handler(w http.ResponseWriter, r *http.Request) {
 		l.reachToUs(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -40,7 +40,7 @@ func (l *ContactController) reachToUs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	request := models.Contact{}
@@ -48,7 +48,7 @@ func (l *ContactController) reachToUs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	err = request.Validate("contact")
@@ -64,5 +64,5 @@ func (l *ContactController) reachToUs(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
 }

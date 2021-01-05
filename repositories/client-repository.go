@@ -3,19 +3,23 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
 
 // ClientRepository struct
 type ClientRepository struct {
-	db *database.DB
+	db    *database.Conn
+	cache *cache.Cache
 }
 
 // Init method
-func (repo *ClientRepository) Init(db *database.DB) {
+func (repo *ClientRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // Create method
@@ -26,7 +30,7 @@ func (repo *ClientRepository) Create(client models.Client) (models.Client, error
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, client.Email, client.ClientID, client.Secret, client.ExpiredDate).Scan(&id)
+	err := repo.db.Master.Conn.QueryRow(statement, client.Email, client.ClientID, client.Secret, client.ExpiredDate).Scan(&id)
 	if err != nil {
 		return client, err
 	}
@@ -37,19 +41,28 @@ func (repo *ClientRepository) Create(client models.Client) (models.Client, error
 
 // GetByEmail method
 func (repo *ClientRepository) GetByEmail(email string) (models.Client, error) {
+	// get data from cache
+	var key = "ClientRepository.GetByEmail" + string(email)
+	found, cache := repo.getClientCache(key)
+	if found {
+		return cache, nil
+	}
+
 	var client models.Client
 	query := `
 	select id, email, clientId, secret, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
 	from client
 	where email = $1 and deleted=false
     `
-	row := repo.db.Conn.QueryRow(query, email)
+	row := repo.db.Slave.Conn.QueryRow(query, email)
 	err := row.Scan(&client.ID, &client.Email, &client.ClientID, &client.Secret, &client.FailedAttempts,
 		&client.LastAttempt, &client.ExpiredDate, &client.CreatedOn, &client.UpdatedOn, &client.Enabled)
 	if err != nil {
 		return models.Client{}, err
 	}
 
+	// update cache
+	repo.setClientCache(key, client)
 	return client, nil
 }
 
@@ -60,7 +73,7 @@ func (repo *ClientRepository) Login(client models.Client) (models.Client, error)
 	from client
 	where clientId = $1 and secret = $2
     `
-	row := repo.db.Conn.QueryRow(query, client.ClientID, client.Secret)
+	row := repo.db.Slave.Conn.QueryRow(query, client.ClientID, client.Secret)
 	err := row.Scan(&client.ID, &client.Email, &client.FailedAttempts,
 		&client.LastAttempt, &client.ExpiredDate, &client.CreatedOn, &client.UpdatedOn, &client.Enabled)
 	if err != nil {
@@ -76,7 +89,7 @@ func (repo *ClientRepository) Delete(id int64) error {
     delete from client
     where id=$1
   	`
-	res, err := repo.db.Conn.Exec(query, id)
+	res, err := repo.db.Master.Conn.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -103,7 +116,7 @@ func (repo *ClientRepository) UpdateLoginAttempt(client models.Client) error {
     where id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, client.ID, client.LastAttempt, client.FailedAttempts, client.Enabled)
+	res, err := repo.db.Master.Conn.Exec(query, client.ID, client.LastAttempt, client.FailedAttempts, client.Enabled)
 	if err != nil {
 		return err
 	}
@@ -120,35 +133,59 @@ func (repo *ClientRepository) UpdateLoginAttempt(client models.Client) error {
 }
 
 // GetClients method
-func (repo *ClientRepository) GetClients(page int64) ([]models.Client, error) {
+func (repo *ClientRepository) GetClients(lastID int64) ([]models.Client, error) {
+	// get data from cache
+	var key = "ClientRepository.GetClients" + string(lastID)
+	found, cache := repo.getClientsCache(key)
+	if found {
+		return cache, nil
+	}
+
 	query := `
 	select id, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
 	from client
-	order BY createdOn limit 50 OFFSET $1-1
+	where id < $1
+	order BY id DESC limit 20
     `
-	rows, err := repo.db.Conn.Query(query, page)
+	rows, err := repo.db.Slave.Conn.Query(query, lastID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	return getClientsFromRows(rows)
+	result, err := getClientsFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	// update cache
+	repo.setClientsCache(key, result)
+	return result, nil
 }
 
 // GetClient method
 func (repo *ClientRepository) GetClient(id int64) (models.Client, error) {
+	// get data from cache
+	var key = "ClientRepository.GetClient" + string(id)
+	found, cache := repo.getClientCache(key)
+	if found {
+		return cache, nil
+	}
+
 	var client models.Client
 	query := `
 	select id, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, enabled
 	from client
 	where id=$1 and enabled=true
 	`
-	row := repo.db.Conn.QueryRow(query, id)
+	row := repo.db.Slave.Conn.QueryRow(query, id)
 	err := row.Scan(&client.ID, &client.Email, &client.FailedAttempts, &client.LastAttempt,
 		&client.ExpiredDate, &client.CreatedOn, &client.UpdatedOn, &client.Enabled)
 	if err != nil {
 		return models.Client{}, err
 	}
 
+	// update cache
+	repo.setClientCache(key, client)
 	return client, nil
 }
 
@@ -166,4 +203,38 @@ func getClientsFromRows(rows *sql.Rows) ([]models.Client, error) {
 	}
 
 	return clients, nil
+}
+
+// getClientCache method get cache for client
+func (repo *ClientRepository) getClientCache(key string) (bool, models.Client) {
+	var data models.Client
+	if x, found := repo.cache.Get(key); found {
+		data = x.(models.Client)
+		return found, data
+	}
+	return false, data
+}
+
+// setClientCache method set cache for client
+func (repo *ClientRepository) setClientCache(key string, client models.Client) {
+	if client != (models.Client{}) {
+		repo.cache.Set(key, client, 30*time.Minute)
+	}
+}
+
+// getClientCache method get cache for clients
+func (repo *ClientRepository) getClientsCache(key string) (bool, []models.Client) {
+	var data []models.Client
+	if x, found := repo.cache.Get(key); found {
+		data = x.([]models.Client)
+		return found, data
+	}
+	return false, data
+}
+
+// setClientCache method set cache for clients
+func (repo *ClientRepository) setClientsCache(key string, clients []models.Client) {
+	if len(clients) > 0 {
+		repo.cache.Set(key, clients, 30*time.Minute)
+	}
 }

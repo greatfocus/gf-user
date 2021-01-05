@@ -11,13 +11,11 @@ CREATE TABLE IF NOT EXISTS users (
 	status VARCHAR(20) NOT NULL,
 	deleted BOOLEAN NOT NULL default(false),
 	enabled BOOLEAN NOT NULL default(false),
-	UNIQUE(email)	
+	UNIQUE(email),
+	UNIQUE(email, password)
 );
 
 DO $$ 
-DECLARE
-	country INTEGER := (select id from country where code='KE');
-
 BEGIN
 	INSERT INTO users (type, email, password, expiredDate, status, enabled)
 	VALUES

@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_client_enabled ON client USING BTREE(id, enabled);

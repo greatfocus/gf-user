@@ -34,7 +34,7 @@ func (p *PersonController) Handler(w http.ResponseWriter, r *http.Request) {
 		p.Get(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -46,7 +46,7 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate if json object
@@ -55,7 +55,7 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate payload rules
@@ -72,7 +72,8 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, createdPerson)
+	responses.Success(w, http.StatusOK, createdPerson)
+	return
 }
 
 // Update method
@@ -82,7 +83,7 @@ func (p *PersonController) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate if json object
@@ -91,7 +92,7 @@ func (p *PersonController) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate payload rules
@@ -108,7 +109,8 @@ func (p *PersonController) Update(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, createdPerson)
+	responses.Success(w, http.StatusOK, createdPerson)
+	return
 }
 
 // Get method

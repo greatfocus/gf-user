@@ -18,10 +18,10 @@ type PersonService struct {
 // Init method
 func (p *PersonService) Init(s *server.Server) {
 	p.userRepository = &repositories.UserRepository{}
-	p.userRepository.Init(s.DB)
+	p.userRepository.Init(s.DB, s.Cache)
 
 	p.personRepository = &repositories.PersonRepository{}
-	p.personRepository.Init(s.DB)
+	p.personRepository.Init(s.DB, s.Cache)
 }
 
 // Create method

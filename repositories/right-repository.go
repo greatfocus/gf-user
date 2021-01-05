@@ -2,19 +2,23 @@ package repositories
 
 import (
 	"database/sql"
+	"time"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
 
 // RightRepository struct
 type RightRepository struct {
-	db *database.DB
+	db    *database.Conn
+	cache *cache.Cache
 }
 
 // Init method
-func (repo *RightRepository) Init(db *database.DB) {
+func (repo *RightRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // CreateDefault method
@@ -25,7 +29,7 @@ func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, er
 		returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, right.UserID).Scan(&id)
+	err := repo.db.Master.Conn.QueryRow(statement, right.UserID).Scan(&id)
 	if err != nil {
 		return right, err
 	}
@@ -36,14 +40,28 @@ func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, er
 
 // GetRight method
 func (repo *RightRepository) GetRight(userID int64) (models.Right, error) {
+	// get data from cache
+	var key = "RightRepository.GetRight" + string(userID)
+	found, cache := repo.getRightCache(key)
+	if found {
+		return cache, nil
+	}
+
 	query := `
 	select rights.userId, role.id as roleId, role.name as role
 	from rights
 	inner join role on rights.roleId = role.id
 	where rights.userId = $1 and rights.deleted=false and rights.enabled=true
 	`
-	rows := repo.db.Conn.QueryRow(query, userID)
-	return getRightsFromRows(rows)
+	rows := repo.db.Slave.Conn.QueryRow(query, userID)
+	result, err := getRightsFromRows(rows)
+	if err != nil {
+		return models.Right{}, err
+	}
+
+	// update cache
+	repo.setRightCache(key, result)
+	return result, nil
 }
 
 // prepare right row
@@ -55,4 +73,21 @@ func getRightsFromRows(rows *sql.Row) (models.Right, error) {
 	}
 
 	return right, nil
+}
+
+// getRightCache method get cache for Right
+func (repo *RightRepository) getRightCache(key string) (bool, models.Right) {
+	var data models.Right
+	if x, found := repo.cache.Get(key); found {
+		data = x.(models.Right)
+		return found, data
+	}
+	return false, data
+}
+
+// setRightCache method set cache for user
+func (repo *RightRepository) setRightCache(key string, right models.Right) {
+	if right != (models.Right{}) {
+		repo.cache.Set(key, right, 30*time.Minute)
+	}
 }

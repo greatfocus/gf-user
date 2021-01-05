@@ -29,7 +29,7 @@ func (f *ForgotPasswordController) Handler(w http.ResponseWriter, r *http.Reques
 		f.resetPassword(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -40,7 +40,7 @@ func (f *ForgotPasswordController) resetPassword(w http.ResponseWriter, r *http.
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	user := models.User{}
@@ -48,7 +48,7 @@ func (f *ForgotPasswordController) resetPassword(w http.ResponseWriter, r *http.
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	err = user.PrepareInput()
@@ -70,5 +70,5 @@ func (f *ForgotPasswordController) resetPassword(w http.ResponseWriter, r *http.
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
 }

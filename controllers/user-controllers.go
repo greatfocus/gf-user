@@ -32,7 +32,7 @@ func (c *UserController) Handler(w http.ResponseWriter, r *http.Request) {
 		c.getUsers(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -51,7 +51,7 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 
@@ -60,14 +60,15 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, user)
+	responses.Success(w, http.StatusOK, user)
+	return
 }
 
 // getUsers method
 func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 	var err error
-	page := int64(1)
-	pageStr := r.FormValue("page")
+	lastID := int64(1)
+	lastIDStr := r.FormValue("lastId")
 	id := int64(0)
 	idStr := r.FormValue("id")
 
@@ -83,14 +84,14 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 		user := models.User{}
 		user, err := c.userService.GetUser(id)
 		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
+			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 		responses.Success(w, http.StatusOK, user)
 		return
 	}
-	if len(pageStr) != 0 {
-		page, err = strconv.ParseInt(pageStr, 10, 64)
+	if len(lastIDStr) != 0 {
+		lastID, err = strconv.ParseInt(lastIDStr, 10, 64)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
@@ -99,9 +100,9 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		users := []models.User{}
-		users, err = c.userService.GetUsers(page)
+		users, err = c.userService.GetUsers(lastID)
 		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
+			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 		responses.Success(w, http.StatusOK, users)

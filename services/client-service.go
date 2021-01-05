@@ -23,7 +23,7 @@ type ClientService struct {
 // Init method
 func (u *ClientService) Init(s *server.Server) {
 	u.clientRepository = &repositories.ClientRepository{}
-	u.clientRepository.Init(s.DB)
+	u.clientRepository.Init(s.DB, s.Cache)
 
 	u.notifyRepository = &frameRepositories.NotifyRepository{}
 	u.notifyRepository.Init(s.DB)
@@ -75,7 +75,7 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 func (u *ClientService) GetByID(id int64) (models.Client, error) {
 	client, err := u.clientRepository.GetClient(id)
 	if err != nil {
-		derr := errors.New("User does not exist")
+		derr := errors.New("Client does not exist")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
@@ -83,10 +83,10 @@ func (u *ClientService) GetByID(id int64) (models.Client, error) {
 }
 
 // GetClients method
-func (u *ClientService) GetClients(page int64) ([]models.Client, error) {
-	clients, err := u.clientRepository.GetClients(page)
+func (u *ClientService) GetClients(lastID int64) ([]models.Client, error) {
+	clients, err := u.clientRepository.GetClients(lastID)
 	if err != nil {
-		derr := errors.New("Failed to fetch User")
+		derr := errors.New("Failed to fetch Clients")
 		log.Printf("Error: %v\n", err)
 		return clients, derr
 	}
@@ -158,19 +158,19 @@ func (u *ClientService) Delete(id int64) error {
 	// check for user
 	found, err := u.clientRepository.GetClient(id)
 	if err != nil {
-		derr := errors.New("User does not exist")
+		derr := errors.New("Client does not exist")
 		log.Printf("Error: %v\n", err)
 		return derr
 	}
 	if found.ID == 0 {
-		derr := errors.New("User does not exist")
+		derr := errors.New("Client does not exist")
 		log.Printf("Error: %v\n", derr)
 		return derr
 	}
 
 	err = u.clientRepository.Delete(found.ID)
 	if err != nil {
-		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
+		derr := errors.New("Failed to delete Client")
 		log.Printf("Error: %v\n", err)
 		return derr
 	}
@@ -183,7 +183,7 @@ func sendClientCredentials(repo *frameRepositories.NotifyRepository, c *config.C
 	output := make([]string, 2)
 	output[0] = client.ClientIDTmp
 	output[1] = client.SecretTmp
-	err := repo.SendNotification(c, output, client.Email, client.ID, "client_credentials")
+	err := repo.AddNotification(c, output, client.Email, client.ID, "client_credentials")
 	if err != nil {
 		return err
 	}

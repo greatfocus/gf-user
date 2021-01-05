@@ -29,7 +29,7 @@ func (o *OtpController) Handler(w http.ResponseWriter, r *http.Request) {
 		o.validateToken(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -41,7 +41,7 @@ func (o *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate if json object
@@ -50,7 +50,7 @@ func (o *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	// validate payload rules
@@ -67,5 +67,6 @@ func (o *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusCreated, createdOtp)
+	responses.Success(w, http.StatusOK, createdOtp)
+	return
 }

@@ -3,29 +3,32 @@ package repositories
 import (
 	"fmt"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
 
 // OtpRepository struct
 type OtpRepository struct {
-	db *database.DB
+	db    *database.Conn
+	cache *cache.Cache
 }
 
 // Init method
-func (repo *OtpRepository) Init(db *database.DB) {
+func (repo *OtpRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // Create method
 func (repo *OtpRepository) Create(otp models.Otp, channel string) (models.Otp, error) {
 	statement := `
-    insert into otp (userId, token, channel, expiredDate)
-    values ($1, $2, $3, $4)
+    INSERT INTO otp (userId, token, channel, expiredDate)
+    VALUES ($1, $2, $3, $4)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, otp.UserID, otp.Token, channel, otp.ExpiredDate).Scan(&id)
+	err := repo.db.Master.Conn.QueryRow(statement, otp.UserID, otp.Token, channel, otp.ExpiredDate).Scan(&id)
 	if err != nil {
 		return otp, err
 	}
@@ -37,11 +40,11 @@ func (repo *OtpRepository) Create(otp models.Otp, channel string) (models.Otp, e
 // GetByToken method
 func (repo *OtpRepository) GetByToken(userID int64, token int64) (models.Otp, error) {
 	query := `
-	select id, token, expiredDate
-	from otp
-	where userId = $1 and token = $2 and verified = false
+	SELECT id, token, expiredDate
+	FROM otp
+	WHERE userId = $1 AND token = $2 AND verified = false
     `
-	row := repo.db.Conn.QueryRow(query, userID, token)
+	row := repo.db.Slave.Conn.QueryRow(query, userID, token)
 	var otp models.Otp
 	err := row.Scan(&otp.ID, &otp.Token, &otp.ExpiredDate)
 	if err != nil {
@@ -54,14 +57,14 @@ func (repo *OtpRepository) GetByToken(userID int64, token int64) (models.Otp, er
 // Update method
 func (repo *OtpRepository) Update(otp models.Otp) error {
 	query := `
-    update otp
-	set 
+    UPDATE otp
+	SET 
 		verified=$2,
 		updatedOn=CURRENT_TIMESTAMP
-    where id=$1
+    WHERE id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, otp.ID, true)
+	res, err := repo.db.Master.Conn.Exec(query, otp.ID, true)
 	if err != nil {
 		return err
 	}
@@ -72,6 +75,27 @@ func (repo *OtpRepository) Update(otp models.Otp) error {
 	}
 	if count != 1 {
 		return fmt.Errorf("more than 1 record got Update Otp for %d", otp.ID)
+	}
+
+	return nil
+}
+
+// Delete method
+func (repo *OtpRepository) Delete(id int64) error {
+	query := `
+    delete from otp where id=$1
+  	`
+	res, err := repo.db.Master.Conn.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return fmt.Errorf("more than 1 record got updated Otp for %d", id)
 	}
 
 	return nil

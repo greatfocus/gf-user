@@ -3,46 +3,49 @@ package repositories
 import (
 	"fmt"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
 
 // ContactRepository struct
 type ContactRepository struct {
-	db *database.DB
+	db    *database.Conn
+	cache *cache.Cache
 }
 
 // Init method
-func (repo *ContactRepository) Init(db *database.DB) {
+func (repo *ContactRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // ReachToUs method
 func (repo *ContactRepository) ReachToUs(contact models.Contact) (models.Contact, error) {
 	statement := `
-    insert into contactus (name, email, message, status, createdOn)
-    values ($1, $2, $3, 'new', $4)
+    INSERT INTO contactus (name, email, message, status, createdOn)
+    VALUES ($1, $2, $3, 'new', $4)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, contact.Name, contact.Email, contact.Message, contact.CreatedOn).Scan(&id)
+	err := repo.db.Master.Conn.QueryRow(statement, contact.Name, contact.Email, contact.Message, contact.CreatedOn).Scan(&id)
 	if err != nil {
 		return contact, err
 	}
-	createdContact := contact
-	createdContact.ID = id
-	return createdContact, nil
+	created := contact
+	created.ID = id
+	return created, nil
 }
 
 // GetMessages method
 func (repo *ContactRepository) GetMessages(status string) ([]models.Contact, error) {
 	query := `
-	select name, email, message, status, createdOn, updatedOn
-	from contactus 
-	where status = $1
-	order BY createdOn limit 10
+	SELECT name, email, message, status, createdOn, updatedOn
+	FROM contactus 
+	WHERE status = $1
+	ORDER BY id DESC LIMIT 20
     `
-	rows, err := repo.db.Conn.Query(query, status)
+	rows, err := repo.db.Slave.Conn.Query(query, status)
 	if err != nil {
 		return nil, err
 	}
@@ -64,14 +67,14 @@ func (repo *ContactRepository) GetMessages(status string) ([]models.Contact, err
 // Update method
 func (repo *ContactRepository) Update(contact models.Contact) error {
 	query := `
-    update contactus
-	set 
+    UPDATE contactus
+	SET 
 		status=$2,
 		updatedOn=CURRENT_TIMESTAMP
-    where id=$1
+    WHERE id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, contact.ID, "new")
+	res, err := repo.db.Master.Conn.Exec(query, contact.ID, "new")
 	if err != nil {
 		return err
 	}

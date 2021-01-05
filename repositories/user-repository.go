@@ -3,19 +3,23 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
 
 // UserRepository struct
 type UserRepository struct {
-	db *database.DB
+	db    *database.Conn
+	cache *cache.Cache
 }
 
 // Init method
-func (repo *UserRepository) Init(db *database.DB) {
+func (repo *UserRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // CreateUser method
@@ -26,13 +30,13 @@ func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, user.Type, user.Email, user.Password, user.ExpiredDate, user.Status).Scan(&id)
+	err := repo.db.Master.Conn.QueryRow(statement, user.Type, user.Email, user.Password, user.ExpiredDate, user.Status).Scan(&id)
 	if err != nil {
 		return user, err
 	}
-	createdUser := user
-	createdUser.ID = id
-	return createdUser, nil
+	created := user
+	created.ID = id
+	return created, nil
 }
 
 // GetPasswordByEmail method
@@ -43,7 +47,7 @@ func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error
 	from users 
 	where email = $1 and deleted=false
     `
-	row := repo.db.Conn.QueryRow(query, email)
+	row := repo.db.Slave.Conn.QueryRow(query, email)
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
@@ -54,19 +58,28 @@ func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error
 
 // GetByEmail method
 func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
+	// get data from cache
+	var key = "UserRepository.GetByEmail" + string(email)
+	found, cache := repo.getUserCache(key)
+	if found {
+		return cache, nil
+	}
+
 	var user models.User
 	query := `
 	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where email = $1 and deleted=false
     `
-	row := repo.db.Conn.QueryRow(query, email)
+	row := repo.db.Slave.Conn.QueryRow(query, email)
 	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
 		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
 
+	// update cache
+	repo.setUserCache(key, user)
 	return user, nil
 }
 
@@ -82,7 +95,7 @@ func (repo *UserRepository) UpdateUser(user models.User) error {
 		updatedOn=CURRENT_TIMESTAMP
     where id=$1 and deleted=false
   	`
-	res, err := repo.db.Conn.Exec(query, user.ID, user.Status, user.Enabled, user.FailedAttempts, user.ExpiredDate)
+	res, err := repo.db.Master.Conn.Exec(query, user.ID, user.Status, user.Enabled, user.FailedAttempts, user.ExpiredDate)
 	if err != nil {
 		return err
 	}
@@ -110,7 +123,7 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
     where id=$1
   	`
 
-	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.Status, user.Enabled)
+	res, err := repo.db.Master.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.Status, user.Enabled)
 	if err != nil {
 		return err
 	}
@@ -127,14 +140,21 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 }
 
 // GetUsers method
-func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
+func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
+	// get data from cache
+	var key = "UserRepository.GetUsers" + string(lastID)
+	found, cache := repo.getUsersCache(key)
+	if found {
+		return cache, nil
+	}
+
 	query := `
-	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
-	from users 
-	where deleted=false
-	order BY createdOn limit 50 OFFSET $1-1
+	SELECT id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
+	FROM users 
+	WHERE id < $1 and deleted=false
+	ORDER BY id DESC limit 20
     `
-	rows, err := repo.db.Conn.Query(query, page)
+	rows, err := repo.db.Slave.Conn.Query(query, lastID)
 	if err != nil {
 		return nil, err
 	}
@@ -151,24 +171,35 @@ func (repo *UserRepository) GetUsers(page int64) ([]models.User, error) {
 		users = append(users, user)
 	}
 
+	// update cache
+	repo.setUsersCache(key, users)
 	return users, nil
 }
 
 // GetUser method
 func (repo *UserRepository) GetUser(id int64) (models.User, error) {
+	// get data from cache
+	var key = "UserRepository.GetByEmail" + string(id)
+	found, cache := repo.getUserCache(key)
+	if found {
+		return cache, nil
+	}
+
 	var user models.User
 	query := `
 	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where id=$1 and deleted=false and enabled=true
 	`
-	row := repo.db.Conn.QueryRow(query, id)
+	row := repo.db.Slave.Conn.QueryRow(query, id)
 	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
 		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
 
+	// update cache
+	repo.setUserCache(key, user)
 	return user, nil
 }
 
@@ -177,7 +208,7 @@ func (repo *UserRepository) Delete(id int64) error {
 	query := `
     delete from users where id=$1
   	`
-	res, err := repo.db.Conn.Exec(query, id)
+	res, err := repo.db.Master.Conn.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -207,4 +238,38 @@ func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+// getUserCache method get cache for user
+func (repo *UserRepository) getUserCache(key string) (bool, models.User) {
+	var data models.User
+	if x, found := repo.cache.Get(key); found {
+		data = x.(models.User)
+		return found, data
+	}
+	return false, data
+}
+
+// setUserCache method set cache for user
+func (repo *UserRepository) setUserCache(key string, user models.User) {
+	if user != (models.User{}) {
+		repo.cache.Set(key, user, 30*time.Minute)
+	}
+}
+
+// getUsersCache method get cache for User
+func (repo *UserRepository) getUsersCache(key string) (bool, []models.User) {
+	var data []models.User
+	if x, found := repo.cache.Get(key); found {
+		data = x.([]models.User)
+		return found, data
+	}
+	return false, data
+}
+
+// setUsersCache method set cache for users
+func (repo *UserRepository) setUsersCache(key string, users []models.User) {
+	if len(users) > 0 {
+		repo.cache.Set(key, users, 30*time.Minute)
+	}
 }

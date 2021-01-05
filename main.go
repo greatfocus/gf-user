@@ -5,7 +5,7 @@ import (
 
 	frame "github.com/greatfocus/gf-frame"
 	"github.com/greatfocus/gf-user/router"
-	_ "github.com/lib/pq"
+	_ "github.com/greatfocus/pq"
 )
 
 // Entry point to the solution
@@ -17,6 +17,8 @@ func main() {
 
 	// Load configurations
 	server := frame.Create(os.Args[1] + ".json")
+
+	// background task
 	server.Cron.Start()
 
 	// start API service
