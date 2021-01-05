@@ -88,6 +88,6 @@ func (repo *RightRepository) getRightCache(key string) (bool, models.Right) {
 // setRightCache method set cache for user
 func (repo *RightRepository) setRightCache(key string, right models.Right) {
 	if right != (models.Right{}) {
-		repo.cache.Set(key, right, 30*time.Minute)
+		repo.cache.Set(key, right, 5*time.Minute)
 	}
 }

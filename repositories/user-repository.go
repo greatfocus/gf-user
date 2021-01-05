@@ -253,7 +253,7 @@ func (repo *UserRepository) getUserCache(key string) (bool, models.User) {
 // setUserCache method set cache for user
 func (repo *UserRepository) setUserCache(key string, user models.User) {
 	if user != (models.User{}) {
-		repo.cache.Set(key, user, 30*time.Minute)
+		repo.cache.Set(key, user, 5*time.Minute)
 	}
 }
 
@@ -270,6 +270,6 @@ func (repo *UserRepository) getUsersCache(key string) (bool, []models.User) {
 // setUsersCache method set cache for users
 func (repo *UserRepository) setUsersCache(key string, users []models.User) {
 	if len(users) > 0 {
-		repo.cache.Set(key, users, 30*time.Minute)
+		repo.cache.Set(key, users, 5*time.Minute)
 	}
 }

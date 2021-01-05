@@ -26,8 +26,16 @@ func (p *PersonService) Init(s *server.Server) {
 
 // Create method
 func (p *PersonService) Create(person models.Person) (models.Person, error) {
+	// check user
+	user, err := p.userRepository.GetUser(person.UserID)
+	if err != nil || user == (models.User{}) {
+		derr := errors.New("User does not exist")
+		log.Printf("Error: %v\n", err)
+		return person, derr
+	}
+
 	// create person details
-	person, err := p.personRepository.Create(person)
+	person, err = p.personRepository.Create(person)
 	if err == nil {
 		derr := errors.New("User details already exist")
 		log.Printf("Error: %v\n", err)

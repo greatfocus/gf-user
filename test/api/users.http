@@ -1,6 +1,14 @@
+@hostname = 127.0.0.1
+@port = 5001
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@bearer = nil
+
+
 ### create user
-POST http://localhost:5001/user/register
-Content-Type: application/json
+# @name createUser
+POST http://{{host}}/user/register
+Content-Type: {{contentType}}
 
 {
 	"type": "customer",
@@ -8,40 +16,51 @@ Content-Type: application/json
 	"password": "1234"
 }
 
-### user token verification
-POST http://localhost:5001/user/token
-Content-Type: application/json
+
+### user token
+# @name userToken
+POST http://{{host}}/user/token
+Content-Type: {{contentType}}
 
 {
 	"email": "mucunga90@gmail.com",
-	"token": 41298
+	"token": 85060
 }
 
+
 ### login
-POST http://localhost:5001/user/login
-Content-Type: application/json
+# @name login
+POST http://{{host}}/user/login
+Content-Type: {{contentType}}
 
 {
 	"email": "mucunga90@gmail.com",
 	"password": "1234"
 }
 
+
 ### forgot password
-POST http://localhost:5001/user/forgotpassword
-Content-Type: application/json
+# @name forgotPassword
+POST http://{{host}}/user/forgotpassword
+Content-Type: {{contentType}}
 
 {
 	"email": "mucunga90@gmail.com"
 }
 
+
 ### get users
-GET http://localhost:5001/user/users?page=1
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
+# @name getusers
+@bearer = {{login.response.body.jwt}}
+GET http://{{host}}/user/users?lastId=20
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+
 
 ### get user
-GET http://localhost:5001/user/users?id=1
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
-
+# @name getuser
+@bearer = {{login.response.body.jwt}}
+GET http://{{host}}/user/users?id=7
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
 

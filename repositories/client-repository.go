@@ -218,7 +218,7 @@ func (repo *ClientRepository) getClientCache(key string) (bool, models.Client) {
 // setClientCache method set cache for client
 func (repo *ClientRepository) setClientCache(key string, client models.Client) {
 	if client != (models.Client{}) {
-		repo.cache.Set(key, client, 30*time.Minute)
+		repo.cache.Set(key, client, 5*time.Minute)
 	}
 }
 
@@ -235,6 +235,6 @@ func (repo *ClientRepository) getClientsCache(key string) (bool, []models.Client
 // setClientCache method set cache for clients
 func (repo *ClientRepository) setClientsCache(key string, clients []models.Client) {
 	if len(clients) > 0 {
-		repo.cache.Set(key, clients, 30*time.Minute)
+		repo.cache.Set(key, clients, 10*time.Minute)
 	}
 }

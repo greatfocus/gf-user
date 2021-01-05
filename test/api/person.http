@@ -1,42 +1,67 @@
-### get person
-GET  http://localhost:5001/user/person?userId=1
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
+@hostname = 127.0.0.1
+@port = 5001
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@bearer = nil
+
+
+### User Login
+# @name userLogin
+POST http://{{host}}/user/login HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+	"email": "muthurimixphone@gmail.com",
+	"password": "1234"
+}
+
+
+### create client
+# @name getPerson
+@bearer = {{userLogin.response.body.jwt}}
+GET http://{{host}}/user/person?userId=1
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
 
 
 ### update person
-PUT  http://localhost:5001/user/person
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
+# @name updatePerson
+@bearer = {{userLogin.response.body.jwt}}
+PUT  http://{{host}}/user/person
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
 
 {
-    "id": 223,
-    "userId": 2359,
+    "id": 1,
+    "userId": 1,
     "countryId": 1,
     "firstName": "John",
     "middleName": "Peter",
-    "lastName": "Adrian",
-    "mobileNumber": "0780904373",
-    "idNumber": "27496390"
+    "lastName": "Mucunga",
+    "mobileNumber": "0780904371",
+    "idNumber": "27496388"
 }
 
 ### create person
-POST http://localhost:5001/user/person
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2MDU5NTc2NzksInJvbGUiOiJDdXN0b21lciIsInVzZXJfaWQiOjIzNTl9.v9dzy9cnzdl4XVfyOnek6T8hUggwZZGwS_OQTi574RQ
+# @name createPerson
+@bearer = {{userLogin.response.body.jwt}}
+POST  http://{{host}}/user/person
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
 
 {
-    "userId": 2359,
+    "userId": 2,
     "countryId": 1,
     "firstName": "John",
     "middleName": "Peter",
     "lastName": "Adrian",
-    "mobileNumber": "0780904373",
-    "idNumber": "27496390"
+    "mobileNumber": "0780904372",
+    "idNumber": "27496389"
 }
 
 ### contact
-POST http://localhost:5001/user/contact
+# @name contact
+POST http://{{host}}/user/contact
 Content-Type: application/json
 
 {

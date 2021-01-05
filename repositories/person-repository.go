@@ -109,6 +109,6 @@ func (repo *PersonRepository) getPersonCache(key string) (bool, models.Person) {
 // setPersonCache method set cache for person
 func (repo *PersonRepository) setPersonCache(key string, person models.Person) {
 	if person != (models.Person{}) {
-		repo.cache.Set(key, person, 30*time.Minute)
+		repo.cache.Set(key, person, 5*time.Minute)
 	}
 }
