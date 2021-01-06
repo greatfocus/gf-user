@@ -7,12 +7,3 @@ CREATE TABLE IF NOT EXISTS role (
 	UNIQUE(id),
 	UNIQUE(name)
 );
-
-INSERT INTO role (name, description)
-VALUES
-	('Admin', 'Role for admin'),
-	('Staff', 'Role for staff'),
-	('Partner', 'Role for partner'),	
-	('Customer', 'Role for customer')
-ON CONFLICT (name) 
-DO NOTHING;

@@ -10,6 +10,9 @@ import (
 	"github.com/greatfocus/gf-user/models"
 )
 
+// cacheKeys array
+var cacheKeys = []string{}
+
 // ClientRepository struct
 type ClientRepository struct {
 	db    *database.Conn
@@ -36,6 +39,7 @@ func (repo *ClientRepository) Create(client models.Client) (models.Client, error
 	}
 	created := client
 	created.ID = id
+	repo.deleteCache()
 	return created, nil
 }
 
@@ -102,6 +106,7 @@ func (repo *ClientRepository) Delete(id int64) error {
 		return fmt.Errorf("more than 1 record got updated client for %d", id)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
@@ -129,6 +134,7 @@ func (repo *ClientRepository) UpdateLoginAttempt(client models.Client) error {
 		return fmt.Errorf("more than 1 record got updated client for %d", client.ID)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
@@ -218,6 +224,7 @@ func (repo *ClientRepository) getClientCache(key string) (bool, models.Client) {
 // setClientCache method set cache for client
 func (repo *ClientRepository) setClientCache(key string, client models.Client) {
 	if client != (models.Client{}) {
+		cacheKeys = append(cacheKeys, key)
 		repo.cache.Set(key, client, 5*time.Minute)
 	}
 }
@@ -235,6 +242,17 @@ func (repo *ClientRepository) getClientsCache(key string) (bool, []models.Client
 // setClientCache method set cache for clients
 func (repo *ClientRepository) setClientsCache(key string, clients []models.Client) {
 	if len(clients) > 0 {
+		cacheKeys = append(cacheKeys, key)
 		repo.cache.Set(key, clients, 10*time.Minute)
+	}
+}
+
+// deleteCache method to delete
+func (repo *ClientRepository) deleteCache() {
+	if len(cacheKeys) > 0 {
+		for i := 0; i < len(cacheKeys); i++ {
+			repo.cache.Delete(cacheKeys[i])
+		}
+		cacheKeys = []string{}
 	}
 }

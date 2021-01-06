@@ -8,15 +8,3 @@ CREATE TABLE IF NOT EXISTS rights (
 	enabled BOOLEAN NOT NULL default(false),
 	UNIQUE(roleId, userId)
 );
-
-DO $$ 
-DECLARE
-	roleId INTEGER := (select id from role where name='Admin');
-	userId INTEGER := (select id from users where email='muthurimixphone@gmail.com');
-BEGIN 
-	INSERT INTO rights (roleId, userId, deleted, enabled)
-	VALUES
-		(roleId, userId, false, true)
-	ON CONFLICT
-	DO NOTHING;
-END $$;

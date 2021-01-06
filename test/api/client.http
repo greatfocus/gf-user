@@ -24,7 +24,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
 
 {
-	"email": "test@gmail.com"
+	"email": "test3@gmail.com"
 }
 
 
@@ -50,7 +50,7 @@ Authorization: Bearer {{bearer}}
 ### Get Client
 # @name getClient
 @bearer = {{userLogin.response.body.jwt}}
-GET http://{{host}}/user/client?id=4
+GET http://{{host}}/user/client?id=2
 Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
 
@@ -58,6 +58,6 @@ Authorization: Bearer {{bearer}}
 ### Delete Client
 # @name deleteClient
 @bearer = {{userLogin.response.body.jwt}}
-DELETE  http://{{host}}/user/client?id=4
+DELETE  http://{{host}}/user/client?id=2
 Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
