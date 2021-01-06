@@ -11,6 +11,7 @@ import (
 	frameRepositories "github.com/greatfocus/gf-frame/repositories"
 	"github.com/greatfocus/gf-frame/server"
 	"github.com/greatfocus/gf-frame/utils"
+	"github.com/greatfocus/gf-frame/validate"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
 )
@@ -57,6 +58,13 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err != nil {
 		derr := errors.New("Invalid request")
 		log.Printf("Error: %v\n", err)
+		return user, derr
+	}
+
+	isValid := validate.Email(user.Email)
+	if !isValid {
+		derr := errors.New("Invalid Email Address")
+		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
 

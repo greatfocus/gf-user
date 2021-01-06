@@ -4,6 +4,8 @@ import (
 	"errors"
 	"log"
 
+	"github.com/greatfocus/gf-frame/validate"
+
 	"github.com/greatfocus/gf-frame/utils"
 
 	"github.com/greatfocus/gf-frame/config"
@@ -37,6 +39,13 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	if err != nil {
 		derr := errors.New("Invalid request")
 		log.Printf("Error: %v\n", err)
+		return client, derr
+	}
+
+	isValid := validate.Email(client.Email)
+	if !isValid {
+		derr := errors.New("Invalid Email Address")
+		log.Printf("Error: %v\n", derr)
 		return client, derr
 	}
 

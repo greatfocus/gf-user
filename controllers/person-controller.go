@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/greatfocus/gf-frame/responses"
+	"github.com/greatfocus/gf-frame/validate"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/services"
 )
@@ -62,6 +63,14 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 	err = person.Validate("create")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	isValid := validate.Phone(person.MobileNumber)
+	if !isValid {
+		derr := errors.New("Invalid Email Address")
+		log.Printf("Error: %v\n", derr)
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
