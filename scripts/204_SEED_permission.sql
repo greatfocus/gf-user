@@ -8,21 +8,24 @@ DECLARE
 	user_deactivate INTEGER := (select id from action where name='user_deactivate');
 	user_delete INTEGER := (select id from action where name='user_delete');
 BEGIN 
-    IF NOT EXISTS (SELECT 1 FROM permission) THEN
+    IF NOT EXISTS (SELECT 1 FROM permission WHERE roleid=adminroleid) THEN
        INSERT INTO permission (roleid, actionid)
         VALUES
             -- admin		
             (adminroleid, user_create),
             (adminroleid, user_activate),
             (adminroleid, user_deactivate),
-            (adminroleid, user_delete),
+            (adminroleid, user_delete)
+        ON CONFLICT
+        DO NOTHING;
+    END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM permission WHERE roleid=staffroleid) THEN
+       INSERT INTO permission (roleid, actionid)
+        VALUES
             -- staff
             (staffroleid, user_activate),
             (staffroleid, user_deactivate)
-
-            -- agent
-            -- customer
         ON CONFLICT
         DO NOTHING;
     END IF;
