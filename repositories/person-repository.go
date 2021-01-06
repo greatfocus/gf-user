@@ -2,12 +2,16 @@ package repositories
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
+
+// personRepositoryCacheKeys array
+var personRepositoryCacheKeys = []string{}
 
 // PersonRepository struct
 type PersonRepository struct {
@@ -35,13 +39,14 @@ func (repo *PersonRepository) Create(person models.Person) (models.Person, error
 	}
 	createdPerson := person
 	createdPerson.ID = id
+	repo.deleteCache()
 	return createdPerson, nil
 }
 
 // GetByUserID method
 func (repo *PersonRepository) GetByUserID(userID int64) (models.Person, error) {
 	// get data from cache
-	var key = "PersonRepository.GetByUserID" + string(userID)
+	var key = "PersonRepository.GetByUserID" + strconv.Itoa(int(userID))
 	found, cache := repo.getPersonCache(key)
 	if found {
 		return cache, nil
@@ -93,6 +98,7 @@ func (repo *PersonRepository) Update(person models.Person) error {
 		return fmt.Errorf("more than 1 record got Update Person for %d", person.ID)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
@@ -109,6 +115,17 @@ func (repo *PersonRepository) getPersonCache(key string) (bool, models.Person) {
 // setPersonCache method set cache for person
 func (repo *PersonRepository) setPersonCache(key string, person models.Person) {
 	if person != (models.Person{}) {
+		personRepositoryCacheKeys = append(personRepositoryCacheKeys, key)
 		repo.cache.Set(key, person, 5*time.Minute)
+	}
+}
+
+// deleteCache method to delete
+func (repo *PersonRepository) deleteCache() {
+	if len(personRepositoryCacheKeys) > 0 {
+		for i := 0; i < len(personRepositoryCacheKeys); i++ {
+			repo.cache.Delete(personRepositoryCacheKeys[i])
+		}
+		personRepositoryCacheKeys = []string{}
 	}
 }

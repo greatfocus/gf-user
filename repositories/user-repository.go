@@ -3,12 +3,16 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
+
+// rightRepositoryCacheKeys array
+var userRepositoryCacheKeys = []string{}
 
 // UserRepository struct
 type UserRepository struct {
@@ -36,6 +40,7 @@ func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
 	}
 	created := user
 	created.ID = id
+	repo.deleteCache()
 	return created, nil
 }
 
@@ -59,7 +64,7 @@ func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error
 // GetByEmail method
 func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
 	// get data from cache
-	var key = "UserRepository.GetByEmail" + string(email)
+	var key = "UserRepository.GetByEmail" + email
 	found, cache := repo.getUserCache(key)
 	if found {
 		return cache, nil
@@ -108,6 +113,7 @@ func (repo *UserRepository) UpdateUser(user models.User) error {
 		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
@@ -136,13 +142,14 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
 // GetUsers method
 func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
 	// get data from cache
-	var key = "UserRepository.GetUsers" + string(lastID)
+	var key = "UserRepository.GetUsers" + strconv.Itoa(int(lastID))
 	found, cache := repo.getUsersCache(key)
 	if found {
 		return cache, nil
@@ -179,7 +186,7 @@ func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
 // GetUser method
 func (repo *UserRepository) GetUser(id int64) (models.User, error) {
 	// get data from cache
-	var key = "UserRepository.GetByEmail" + string(id)
+	var key = "UserRepository.GetByEmail" + strconv.Itoa(int(id))
 	found, cache := repo.getUserCache(key)
 	if found {
 		return cache, nil
@@ -221,6 +228,7 @@ func (repo *UserRepository) Delete(id int64) error {
 		return fmt.Errorf("more than 1 record got updated User for %d", id)
 	}
 
+	repo.deleteCache()
 	return nil
 }
 
@@ -253,6 +261,7 @@ func (repo *UserRepository) getUserCache(key string) (bool, models.User) {
 // setUserCache method set cache for user
 func (repo *UserRepository) setUserCache(key string, user models.User) {
 	if user != (models.User{}) {
+		userRepositoryCacheKeys = append(userRepositoryCacheKeys, key)
 		repo.cache.Set(key, user, 5*time.Minute)
 	}
 }
@@ -270,6 +279,17 @@ func (repo *UserRepository) getUsersCache(key string) (bool, []models.User) {
 // setUsersCache method set cache for users
 func (repo *UserRepository) setUsersCache(key string, users []models.User) {
 	if len(users) > 0 {
+		userRepositoryCacheKeys = append(userRepositoryCacheKeys, key)
 		repo.cache.Set(key, users, 5*time.Minute)
+	}
+}
+
+// deleteCache method to delete
+func (repo *UserRepository) deleteCache() {
+	if len(userRepositoryCacheKeys) > 0 {
+		for i := 0; i < len(userRepositoryCacheKeys); i++ {
+			repo.cache.Delete(userRepositoryCacheKeys[i])
+		}
+		userRepositoryCacheKeys = []string{}
 	}
 }

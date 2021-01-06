@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/greatfocus/gf-frame/cache"
@@ -10,8 +11,8 @@ import (
 	"github.com/greatfocus/gf-user/models"
 )
 
-// cacheKeys array
-var cacheKeys = []string{}
+// clientRepositoryCacheKeys array
+var clientRepositoryCacheKeys = []string{}
 
 // ClientRepository struct
 type ClientRepository struct {
@@ -46,7 +47,7 @@ func (repo *ClientRepository) Create(client models.Client) (models.Client, error
 // GetByEmail method
 func (repo *ClientRepository) GetByEmail(email string) (models.Client, error) {
 	// get data from cache
-	var key = "ClientRepository.GetByEmail" + string(email)
+	var key = "ClientRepository.GetByEmail" + email
 	found, cache := repo.getClientCache(key)
 	if found {
 		return cache, nil
@@ -141,7 +142,7 @@ func (repo *ClientRepository) UpdateLoginAttempt(client models.Client) error {
 // GetClients method
 func (repo *ClientRepository) GetClients(lastID int64) ([]models.Client, error) {
 	// get data from cache
-	var key = "ClientRepository.GetClients" + string(lastID)
+	var key = "ClientRepository.GetClients" + strconv.Itoa(int(lastID))
 	found, cache := repo.getClientsCache(key)
 	if found {
 		return cache, nil
@@ -171,7 +172,7 @@ func (repo *ClientRepository) GetClients(lastID int64) ([]models.Client, error) 
 // GetClient method
 func (repo *ClientRepository) GetClient(id int64) (models.Client, error) {
 	// get data from cache
-	var key = "ClientRepository.GetClient" + string(id)
+	var key = "ClientRepository.GetClient" + strconv.Itoa(int(id))
 	found, cache := repo.getClientCache(key)
 	if found {
 		return cache, nil
@@ -224,7 +225,7 @@ func (repo *ClientRepository) getClientCache(key string) (bool, models.Client) {
 // setClientCache method set cache for client
 func (repo *ClientRepository) setClientCache(key string, client models.Client) {
 	if client != (models.Client{}) {
-		cacheKeys = append(cacheKeys, key)
+		clientRepositoryCacheKeys = append(clientRepositoryCacheKeys, key)
 		repo.cache.Set(key, client, 5*time.Minute)
 	}
 }
@@ -242,17 +243,17 @@ func (repo *ClientRepository) getClientsCache(key string) (bool, []models.Client
 // setClientCache method set cache for clients
 func (repo *ClientRepository) setClientsCache(key string, clients []models.Client) {
 	if len(clients) > 0 {
-		cacheKeys = append(cacheKeys, key)
+		clientRepositoryCacheKeys = append(clientRepositoryCacheKeys, key)
 		repo.cache.Set(key, clients, 10*time.Minute)
 	}
 }
 
 // deleteCache method to delete
 func (repo *ClientRepository) deleteCache() {
-	if len(cacheKeys) > 0 {
-		for i := 0; i < len(cacheKeys); i++ {
-			repo.cache.Delete(cacheKeys[i])
+	if len(clientRepositoryCacheKeys) > 0 {
+		for i := 0; i < len(clientRepositoryCacheKeys); i++ {
+			repo.cache.Delete(clientRepositoryCacheKeys[i])
 		}
-		cacheKeys = []string{}
+		clientRepositoryCacheKeys = []string{}
 	}
 }

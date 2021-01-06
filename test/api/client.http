@@ -50,7 +50,7 @@ Authorization: Bearer {{bearer}}
 ### Get Client
 # @name getClient
 @bearer = {{userLogin.response.body.jwt}}
-GET http://{{host}}/user/client?id=2
+GET http://{{host}}/user/client?id=3
 Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
 

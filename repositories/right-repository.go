@@ -2,12 +2,16 @@ package repositories
 
 import (
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-user/models"
 )
+
+// rightRepositoryCacheKeys array
+var rightRepositoryCacheKeys = []string{}
 
 // RightRepository struct
 type RightRepository struct {
@@ -35,13 +39,14 @@ func (repo *RightRepository) CreateDefault(right models.Right) (models.Right, er
 	}
 	createdRight := right
 	createdRight.ID = id
+	repo.deleteCache()
 	return createdRight, nil
 }
 
 // GetRight method
 func (repo *RightRepository) GetRight(userID int64) (models.Right, error) {
 	// get data from cache
-	var key = "RightRepository.GetRight" + string(userID)
+	var key = "RightRepository.GetRight" + strconv.Itoa(int(userID))
 	found, cache := repo.getRightCache(key)
 	if found {
 		return cache, nil
@@ -88,6 +93,17 @@ func (repo *RightRepository) getRightCache(key string) (bool, models.Right) {
 // setRightCache method set cache for user
 func (repo *RightRepository) setRightCache(key string, right models.Right) {
 	if right != (models.Right{}) {
+		rightRepositoryCacheKeys = append(rightRepositoryCacheKeys, key)
 		repo.cache.Set(key, right, 5*time.Minute)
+	}
+}
+
+// deleteCache method to delete
+func (repo *RightRepository) deleteCache() {
+	if len(rightRepositoryCacheKeys) > 0 {
+		for i := 0; i < len(rightRepositoryCacheKeys); i++ {
+			repo.cache.Delete(rightRepositoryCacheKeys[i])
+		}
+		rightRepositoryCacheKeys = []string{}
 	}
 }
