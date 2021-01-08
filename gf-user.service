@@ -1,5 +1,5 @@
 [Unit]
-Description= User management services
+Description= User services
 ConditionPathExists=/app/gf-user/gf-user
 After=network.target
 

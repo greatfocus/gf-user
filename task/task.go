@@ -37,10 +37,10 @@ func (t *Tasks) RunDatabaseScripts() {
 func (t *Tasks) RebuildIndexes() {
 	log.Println("Scheduler_RebuildIndexes started")
 	if t.config.Database.Master.ExecuteSchema {
-		t.db.Master.RebuildIndexes(t.db.Master.Conn, "gf_query")
+		t.db.Master.RebuildIndexes(t.db.Master.Conn, "gf_user")
 	}
 	if t.config.Database.Slave.ExecuteSchema {
-		t.db.Slave.RebuildIndexes(t.db.Slave.Conn, "gf_query")
+		t.db.Slave.RebuildIndexes(t.db.Slave.Conn, "gf_user")
 	}
 	log.Println("Scheduler_RebuildIndexes ended")
 }
