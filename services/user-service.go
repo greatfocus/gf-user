@@ -189,6 +189,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 
 	// update attempts
 	userFound.FailedAttempts = 0
+	userFound.SuccessLogins = userFound.SuccessLogins + 1
 	err = u.userRepository.UpdateLoginAttempt(userFound)
 	if err != nil {
 		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
@@ -204,6 +205,11 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 		return user, derr
 	}
 	user.Right = right
+
+	// send first time login message
+	if userFound.SuccessLogins == 1 {
+		sendFirstTimeLogin(u.notifyRepository, u.config, userFound)
+	}
 
 	// generate token
 	token, err := u.jwt.CreateToken(userFound.ID, right.Role)
@@ -256,9 +262,21 @@ func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 		log.Println(err)
 	}
 
+	sendResetPassword(u.notifyRepository, u.config, userFound)
+
 	result := models.User{}
 	result.PrepareOutput(user)
 	return result, nil
+}
+
+// sendResetPassword create alerts
+func sendResetPassword(repo *frameRepositories.NotifyRepository, c *config.Config, user models.User) error {
+	output := make([]string, 0)
+	err := repo.AddNotification(c, output, user.Email, user.ID, "password_reset")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // sendOTP create alerts
@@ -266,6 +284,16 @@ func sendOTP(repo *frameRepositories.NotifyRepository, c *config.Config, user mo
 	output := make([]string, 1)
 	output[0] = strconv.Itoa(int(user.Token))
 	err := repo.AddNotification(c, output, user.Email, user.ID, "email_otp")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// sendFirstTimeLogin create alerts
+func sendFirstTimeLogin(repo *frameRepositories.NotifyRepository, c *config.Config, user models.User) error {
+	output := make([]string, 0)
+	err := repo.AddNotification(c, output, user.Email, user.ID, "first_login")
 	if err != nil {
 		return err
 	}
@@ -301,7 +329,7 @@ func (u *UserService) ReachToUs(contact models.Contact) (models.Contact, error) 
 	return result, nil
 }
 
-// sendOTP create alerts
+// sendReachToUsMessage create alerts
 func sendReachToUsMessage(repo *frameRepositories.NotifyRepository, c *config.Config, contact models.Contact) error {
 	output := make([]string, 3)
 	output[0] = contact.Name

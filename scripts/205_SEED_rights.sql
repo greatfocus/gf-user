@@ -6,7 +6,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM rights r WHERE r.roleId=rId AND r.userId=usId) THEN
         INSERT INTO rights (roleId, userId, deleted, enabled)
         VALUES
-            (roleId, userId, false, true)
+            (rId, usId, false, true)
         ON CONFLICT
         DO NOTHING;
     END IF;

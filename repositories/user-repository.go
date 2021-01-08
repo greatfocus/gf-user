@@ -48,12 +48,12 @@ func (repo *UserRepository) CreateUser(user models.User) (models.User, error) {
 func (repo *UserRepository) GetPasswordByEmail(email string) (models.User, error) {
 	var user models.User
 	query := `
-	select id, email, password, failedAttempts, lastAttempt, status, enabled
+	select id, email, password, failedAttempts, lastAttempt, successLogins, status, enabled
 	from users 
 	where email = $1 and deleted=false
     `
 	row := repo.db.Slave.Conn.QueryRow(query, email)
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.Status, &user.Enabled)
+	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.FailedAttempts, &user.LastAttempt, &user.SuccessLogins, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -72,13 +72,13 @@ func (repo *UserRepository) GetByEmail(email string) (models.User, error) {
 
 	var user models.User
 	query := `
-	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
+	select id, type, email, failedAttempts, lastAttempt, successLogins, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where email = $1 and deleted=false
     `
 	row := repo.db.Slave.Conn.QueryRow(query, email)
 	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
-		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+		&user.SuccessLogins, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -122,14 +122,15 @@ func (repo *UserRepository) UpdateLoginAttempt(user models.User) error {
 	query := `
     update users
 	set 
-		lastAttempt=$2, 
-		failedAttempts=$3,
-		status=$4,
-		enabled=$5		
+		lastAttempt=$2,
+		successLogins=$3,
+		failedAttempts=$4,
+		status=$5,
+		enabled=$6		
     where id=$1
   	`
 
-	res, err := repo.db.Master.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.Status, user.Enabled)
+	res, err := repo.db.Master.Conn.Exec(query, user.ID, user.LastAttempt, user.SuccessLogins, user.FailedAttempts, user.Status, user.Enabled)
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,7 @@ func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
 	}
 
 	query := `
-	SELECT id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
+	SELECT id, type, email, failedAttempts, lastAttempt, successLogins, successLogins, expiredDate, createdOn, updatedOn, status, enabled
 	FROM users 
 	WHERE id < $1 and deleted=false
 	ORDER BY id DESC limit 20
@@ -171,7 +172,7 @@ func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
 	for rows.Next() {
 		var user models.User
 		err := rows.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts,
-			&user.LastAttempt, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+			&user.LastAttempt, &user.SuccessLogins, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 		if err != nil {
 			return nil, err
 		}
@@ -194,13 +195,13 @@ func (repo *UserRepository) GetUser(id int64) (models.User, error) {
 
 	var user models.User
 	query := `
-	select id, type, email, failedAttempts, lastAttempt, expiredDate, createdOn, updatedOn, status, enabled
+	select id, type, email, failedAttempts, lastAttempt, successLogins, expiredDate, createdOn, updatedOn, status, enabled
 	from users 
 	where id=$1 and deleted=false and enabled=true
 	`
 	row := repo.db.Slave.Conn.QueryRow(query, id)
 	err := row.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
-		&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+		&user.SuccessLogins, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -238,7 +239,7 @@ func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
 	for rows.Next() {
 		var user models.User
 		err := rows.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
-			&user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
+			&user.SuccessLogins, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
 		if err != nil {
 			return nil, err
 		}

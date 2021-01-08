@@ -17,6 +17,7 @@ type User struct {
 	JWT            string    `json:"jwt,omitempty"`
 	Token          int64     `json:"-"`
 	FailedAttempts int64     `json:"-"`
+	SuccessLogins  int64     `json:"-"`
 	LastAttempt    time.Time `json:"-"`
 	ExpiredDate    time.Time `json:"-"`
 	CreatedOn      time.Time `json:"-"`
