@@ -37,5 +37,5 @@ jobs:
           script: |
             mkdir test 
             cd test 
-            git clone git@github.com:greatfocus/gf-frame.git 
+            git clone git@github.com:greatfocus/gf-user.git 
             echo 'Deployment successful to digital ocean' 
