@@ -31,7 +31,7 @@ func (c *UserController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		c.getUsers(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid request")
 		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -75,7 +75,7 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 	if len(idStr) != 0 {
 		id, err = strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
+			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			responses.Error(w, http.StatusBadRequest, derr)
 			return
@@ -93,7 +93,7 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 	if len(lastIDStr) != 0 {
 		lastID, err = strconv.ParseInt(lastIDStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
+			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			responses.Error(w, http.StatusBadRequest, derr)
 			return
@@ -109,7 +109,7 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	derr := errors.New("Invalid parameter")
+	derr := errors.New("invalid parameter")
 	responses.Error(w, http.StatusBadRequest, derr)
 	return
 }

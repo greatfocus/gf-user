@@ -37,14 +37,14 @@ func (u *ClientService) Init(s *server.Server) {
 func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	err := client.Validate("create")
 	if err != nil {
-		derr := errors.New("Invalid request")
+		derr := errors.New("invalid request")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
 
 	isValid := validate.Email(client.Email)
 	if !isValid {
-		derr := errors.New("Invalid Email Address")
+		derr := errors.New("invalid Email Address")
 		log.Printf("Error: %v\n", derr)
 		return client, derr
 	}

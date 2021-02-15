@@ -34,7 +34,7 @@ func (p *PersonController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		p.Get(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid request")
 		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -69,7 +69,7 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 
 	isValid := validate.Phone(person.MobileNumber)
 	if !isValid {
-		derr := errors.New("Invalid Email Address")
+		derr := errors.New("invalid Email Address")
 		log.Printf("Error: %v\n", derr)
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
@@ -131,7 +131,7 @@ func (p *PersonController) Get(w http.ResponseWriter, r *http.Request) {
 	if len(userIDStr) != 0 {
 		userID, err = strconv.ParseInt(userIDStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
+			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			responses.Error(w, http.StatusBadRequest, derr)
 			return
@@ -145,7 +145,7 @@ func (p *PersonController) Get(w http.ResponseWriter, r *http.Request) {
 		}
 		responses.Success(w, http.StatusOK, person)
 	} else {
-		derr := errors.New("Invalid parameter")
+		derr := errors.New("invalid parameter")
 		responses.Error(w, http.StatusBadRequest, derr)
 	}
 }

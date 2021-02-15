@@ -56,14 +56,14 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	}
 	err = user.Validate("register")
 	if err != nil {
-		derr := errors.New("Invalid request")
+		derr := errors.New("invalid request")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 
 	isValid := validate.Email(user.Email)
 	if !isValid {
-		derr := errors.New("Invalid Email Address")
+		derr := errors.New("invalid Email Address")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
@@ -304,7 +304,7 @@ func sendFirstTimeLogin(repo *frameRepositories.NotifyRepository, c *config.Conf
 func (u *UserService) ReachToUs(contact models.Contact) (models.Contact, error) {
 	err := contact.Validate("contact")
 	if err != nil {
-		derr := errors.New("Invalid request")
+		derr := errors.New("invalid request")
 		log.Printf("Error: %v\n", err)
 		return contact, derr
 	}

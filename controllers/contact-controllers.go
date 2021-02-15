@@ -28,7 +28,7 @@ func (l *ContactController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		l.reachToUs(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid request")
 		responses.Error(w, http.StatusNotFound, err)
 		return
 	}

@@ -28,7 +28,7 @@ func (f *ForgotPasswordController) Handler(w http.ResponseWriter, r *http.Reques
 	case http.MethodPost:
 		f.resetPassword(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid request")
 		responses.Error(w, http.StatusNotFound, err)
 		return
 	}

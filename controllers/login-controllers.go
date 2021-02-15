@@ -28,7 +28,7 @@ func (l *LoginController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		l.login(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid request")
 		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
