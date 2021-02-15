@@ -84,7 +84,7 @@ func (c *ClientController) getClients(w http.ResponseWriter, r *http.Request) {
 		}
 
 		client := models.Client{}
-		client, err := c.clientService.GetByID(id)
+		client, err = c.clientService.GetByID(id)
 		if err != nil {
 			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return

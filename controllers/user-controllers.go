@@ -82,7 +82,7 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		user := models.User{}
-		user, err := c.userService.GetUser(id)
+		user, err = c.userService.GetUser(id)
 		if err != nil {
 			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
