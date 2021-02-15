@@ -39,7 +39,7 @@ func (u *Right) PrepareOutput(right Right) {
 func (u *Right) Validate() error {
 
 	if u.UserID == 0 {
-		return errors.New("Required user id")
+		return errors.New("required user id")
 	}
 	return nil
 }

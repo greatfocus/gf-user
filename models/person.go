@@ -38,25 +38,25 @@ func (p *Person) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "create":
 		if p.UserID == 0 {
-			return errors.New("Required User ID")
+			return errors.New("required user id")
 		}
 		if p.CountryID == 0 {
-			return errors.New("Required Country ID")
+			return errors.New("required country id")
 		}
 		if p.FirstName == "" {
-			return errors.New("Required First Name")
+			return errors.New("required first name")
 		}
 		if p.MiddleName == "" {
-			return errors.New("Required Middle Name")
+			return errors.New("required middle name")
 		}
 		if p.LastName == "" {
-			return errors.New("Required Last Name")
+			return errors.New("required last name")
 		}
 		if p.MobileNumber == "" {
-			return errors.New("Required Mobile Number")
+			return errors.New("required mobile number")
 		}
 		if p.IDNumber == "" {
-			return errors.New("Required ID Number")
+			return errors.New("required id number")
 		}
 		return nil
 	default:

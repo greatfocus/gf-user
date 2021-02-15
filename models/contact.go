@@ -22,13 +22,13 @@ func (c *Contact) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "contact":
 		if c.Name == "" {
-			return errors.New("Required Password")
+			return errors.New("required eassword")
 		}
 		if c.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		if c.Message == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	default:

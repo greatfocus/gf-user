@@ -44,7 +44,7 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 
 	isValid := validate.Email(client.Email)
 	if !isValid {
-		derr := errors.New("invalid Email Address")
+		derr := errors.New("invalid email address")
 		log.Printf("Error: %v\n", derr)
 		return client, derr
 	}
@@ -53,7 +53,7 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	exist := models.Client{}
 	exist, err = u.clientRepository.GetByEmail(client.Email)
 	if (models.Client{}) != exist {
-		derr := errors.New("Client already exist")
+		derr := errors.New("client already exist")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
@@ -62,14 +62,14 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	client.PrepareInput()
 	created, err := u.clientRepository.Create(client)
 	if err != nil {
-		derr := errors.New("Client registration failed")
+		derr := errors.New("client registration failed")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
 
 	// create alert
 	if err := sendClientCredentials(u.notifyRepository, u.config, client); err != nil {
-		derr := errors.New("Client registration failed")
+		derr := errors.New("client registration failed")
 		log.Printf("Error: %v\n", err)
 		u.Delete(created.ID)
 		return client, derr
@@ -84,7 +84,7 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 func (u *ClientService) GetByID(id int64) (models.Client, error) {
 	client, err := u.clientRepository.GetClient(id)
 	if err != nil {
-		derr := errors.New("Client does not exist")
+		derr := errors.New("client does not exist")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
@@ -95,7 +95,7 @@ func (u *ClientService) GetByID(id int64) (models.Client, error) {
 func (u *ClientService) GetClients(lastID int64) ([]models.Client, error) {
 	clients, err := u.clientRepository.GetClients(lastID)
 	if err != nil {
-		derr := errors.New("Failed to fetch Clients")
+		derr := errors.New("failed to fetch clients")
 		log.Printf("Error: %v\n", err)
 		return clients, derr
 	}
@@ -107,7 +107,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 	// check for duplicates
 	found, err := u.clientRepository.GetByEmail(client.Email)
 	if err != nil {
-		derr := errors.New("Client does not exist or inactive")
+		derr := errors.New("client does not exist or inactive")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
@@ -115,7 +115,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 	// check client id
 	valid, err := utils.ComparePasswords(found.ClientID, []byte(client.ClientID))
 	if !valid || err != nil {
-		derr := errors.New("Client or Secret is invalid")
+		derr := errors.New("client or Secret is invalid")
 		log.Printf("Error: %v\n", derr)
 		found.FailedAttempts = (found.FailedAttempts + 1)
 		u.clientRepository.UpdateLoginAttempt(found)
@@ -125,7 +125,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 	// check secret id
 	valid, err = utils.ComparePasswords(found.Secret, []byte(client.Secret))
 	if !valid || err != nil {
-		derr := errors.New("Client or Secret is invalid")
+		derr := errors.New("client or Secret is invalid")
 		log.Printf("Error: %v\n", derr)
 		found.FailedAttempts = (found.FailedAttempts + 1)
 		u.clientRepository.UpdateLoginAttempt(found)
@@ -136,13 +136,13 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 		found.Enabled = false
 		err = u.clientRepository.UpdateLoginAttempt(found)
 
-		derr := errors.New("Client account is locked")
+		derr := errors.New("client account is locked")
 		log.Printf("Error: %v\n", err)
 		return client, derr
 	}
 	// check for login attempts
 	if found.ID == 0 {
-		derr := errors.New("Client does not exist")
+		derr := errors.New("client does not exist")
 		log.Printf("Error: %v\n", derr)
 		return client, derr
 	}
@@ -167,19 +167,19 @@ func (u *ClientService) Delete(id int64) error {
 	// check for user
 	found, err := u.clientRepository.GetClient(id)
 	if err != nil {
-		derr := errors.New("Client does not exist")
+		derr := errors.New("client does not exist")
 		log.Printf("Error: %v\n", err)
 		return derr
 	}
 	if found.ID == 0 {
-		derr := errors.New("Client does not exist")
+		derr := errors.New("client does not exist")
 		log.Printf("Error: %v\n", derr)
 		return derr
 	}
 
 	err = u.clientRepository.Delete(found.ID)
 	if err != nil {
-		derr := errors.New("Failed to delete Client")
+		derr := errors.New("failed to delete client")
 		log.Printf("Error: %v\n", err)
 		return derr
 	}

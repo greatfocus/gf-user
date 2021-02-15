@@ -46,10 +46,10 @@ func (u *Otp) PrepareOutput(otp Otp) {
 func (u *Otp) Validate() error {
 
 	if u.Token == 0 {
-		return errors.New("Required Token")
+		return errors.New("required token")
 	}
 	if u.Email == "" {
-		return errors.New("Required Email")
+		return errors.New("required email")
 	}
 	return nil
 }

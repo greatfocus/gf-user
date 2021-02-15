@@ -65,37 +65,37 @@ func (u *User) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "otp":
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	case "login":
 		if u.Password == "" {
-			return errors.New("Required Password")
+			return errors.New("required password")
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	case "edit":
 		if u.ID == 0 {
-			return errors.New("Required id")
+			return errors.New("required id")
 		}
 		if u.Type == "" {
-			return errors.New("Required Type")
+			return errors.New("required type")
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	case "register":
 		if u.Type == "" {
-			return errors.New("Required Type")
+			return errors.New("required type")
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		if u.Password == "" {
-			return errors.New("Required Password")
+			return errors.New("required password")
 		}
 		return nil
 	default:

@@ -63,7 +63,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 
 	isValid := validate.Email(user.Email)
 	if !isValid {
-		derr := errors.New("invalid Email Address")
+		derr := errors.New("invalid email address")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
@@ -72,7 +72,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	usersExist := models.User{}
 	usersExist, err = u.userRepository.GetByEmail(user.Email)
 	if (models.User{}) != usersExist {
-		derr := errors.New("User already exist")
+		derr := errors.New("user already exist")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -80,7 +80,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	// Create user
 	createdUser, err := u.userRepository.CreateUser(user)
 	if err != nil {
-		derr := errors.New("User registration failed")
+		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -90,7 +90,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	right.UserID = createdUser.ID
 	_, err = u.rightRepository.CreateDefault(right)
 	if err != nil {
-		derr := errors.New("User registration failed")
+		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
 		u.userRepository.Delete(createdUser.ID)
 		return user, derr
@@ -102,7 +102,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	otp.UserID = createdUser.ID
 	createToken, err := u.otpRepository.Create(otp, "email")
 	if err != nil {
-		derr := errors.New("User registration failed")
+		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
 		u.userRepository.Delete(createdUser.ID)
 		return user, derr
@@ -111,7 +111,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	// create alert
 	createdUser.Token = createToken.Token
 	if err := sendOTP(u.notifyRepository, u.config, createdUser); err != nil {
-		derr := errors.New("User registration failed")
+		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
 		u.userRepository.Delete(createdUser.ID)
 		u.otpRepository.Delete(createToken.ID)
@@ -127,7 +127,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 func (u *UserService) GetUser(id int64) (models.User, error) {
 	user, err := u.userRepository.GetUser(id)
 	if err != nil {
-		derr := errors.New("User does not exist")
+		derr := errors.New("user does not exist")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -138,7 +138,7 @@ func (u *UserService) GetUser(id int64) (models.User, error) {
 func (u *UserService) GetUsers(lastID int64) ([]models.User, error) {
 	user, err := u.userRepository.GetUsers(lastID)
 	if err != nil {
-		derr := errors.New("Failed to fetch User")
+		derr := errors.New("failed to fetch user")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
@@ -150,13 +150,13 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 	// check for duplicates
 	userFound, err := u.userRepository.GetPasswordByEmail(user.Email)
 	if err != nil {
-		derr := errors.New("User does not exist or inactive")
+		derr := errors.New("user does not exist or inactive")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 	// check for login user status
 	if userFound.Status != "USER.VERIFIED" && userFound.Status != "USER.APPROVED" {
-		derr := errors.New("User not verified")
+		derr := errors.New("user not verified")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
@@ -165,13 +165,13 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 		userFound.Enabled = false
 		err = u.userRepository.UpdateLoginAttempt(userFound)
 
-		derr := errors.New("User account is locked")
+		derr := errors.New("user account is locked")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 	// check for login attempts
 	if userFound.ID == 0 {
-		derr := errors.New("User does not exist")
+		derr := errors.New("user does not exist")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
@@ -224,12 +224,12 @@ func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 	// check for user
 	userFound, err := u.userRepository.GetByEmail(user.Email)
 	if err != nil {
-		derr := errors.New("User does not exist")
+		derr := errors.New("user does not exist")
 		log.Printf("Error: %v\n", err)
 		return user, derr
 	}
 	if userFound.ID == 0 {
-		derr := errors.New("User does not exist")
+		derr := errors.New("user does not exist")
 		log.Printf("Error: %v\n", derr)
 		return user, derr
 	}
@@ -312,14 +312,14 @@ func (u *UserService) ReachToUs(contact models.Contact) (models.Contact, error) 
 	// Create request
 	createdRequest, err := u.contactRepository.ReachToUs(contact)
 	if err != nil {
-		derr := errors.New("Contact request failed")
+		derr := errors.New("contact request failed")
 		log.Printf("Error: %v\n", err)
 		return contact, derr
 	}
 
 	// create alert
 	if err := sendReachToUsMessage(u.notifyRepository, u.config, createdRequest); err != nil {
-		derr := errors.New("Request failed")
+		derr := errors.New("request failed")
 		log.Printf("Error: %v\n", err)
 		return contact, derr
 	}

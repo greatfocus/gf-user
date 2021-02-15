@@ -37,7 +37,7 @@ func (u *Client) PrepareInput() error {
 	uuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)
 	clientID, err := utils.HashAndSalt([]byte(uuid))
 	if err != nil {
-		return errors.New("Failed to create hash")
+		return errors.New("failed to create hash")
 	}
 	u.ClientID = clientID
 	u.ClientIDTmp = uuid
@@ -46,7 +46,7 @@ func (u *Client) PrepareInput() error {
 	var rand = utils.RandomString(20)
 	secret, err := utils.HashAndSalt([]byte(rand))
 	if err != nil {
-		return errors.New("Failed to create hash")
+		return errors.New("failed to create hash")
 	}
 	u.Secret = secret
 	u.SecretTmp = rand
@@ -72,32 +72,32 @@ func (u *Client) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "create":
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	case "delete":
 		if u.ID == 0 {
-			return errors.New("Required ID")
+			return errors.New("required id")
 		}
 		if u.ClientID == "" {
-			return errors.New("Required Client ID")
+			return errors.New("required client id")
 		}
 		if u.Secret == "" {
-			return errors.New("Required Secret")
+			return errors.New("required secret")
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		return nil
 	case "auth":
 		if u.Email == "" {
-			return errors.New("Required Email")
+			return errors.New("required email")
 		}
 		if u.ClientID == "" {
-			return errors.New("Required Client ID")
+			return errors.New("required client id")
 		}
 		if u.Secret == "" {
-			return errors.New("Required Secret")
+			return errors.New("required secret")
 		}
 		return nil
 	default:

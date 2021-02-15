@@ -29,7 +29,7 @@ func (p *PersonService) Create(person models.Person) (models.Person, error) {
 	// check user
 	user, err := p.userRepository.GetUser(person.UserID)
 	if err != nil || user == (models.User{}) {
-		derr := errors.New("User does not exist")
+		derr := errors.New("user does not exist")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}
@@ -37,7 +37,7 @@ func (p *PersonService) Create(person models.Person) (models.Person, error) {
 	// create person details
 	person, err = p.personRepository.Create(person)
 	if err == nil {
-		derr := errors.New("User details already exist")
+		derr := errors.New("user details already exist")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}
@@ -52,7 +52,7 @@ func (p *PersonService) Update(person models.Person) (models.Person, error) {
 	// create person details
 	err := p.personRepository.Update(person)
 	if err != nil {
-		derr := errors.New("User details failed to update")
+		derr := errors.New("user details failed to update")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}
@@ -67,7 +67,7 @@ func (p *PersonService) Get(userID int64) (models.Person, error) {
 	// create person details
 	person, err := p.personRepository.GetByUserID(userID)
 	if err != nil {
-		derr := errors.New("User details failed to fetch")
+		derr := errors.New("user details failed to fetch")
 		log.Printf("Error: %v\n", err)
 		return person, derr
 	}

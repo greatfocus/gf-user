@@ -38,20 +38,20 @@ func (o *OtpService) ValidateToken(otp models.Otp) (models.Otp, error) {
 	// get token from DB
 	dbOtp, err := o.otpRepository.GetByToken(user.ID, otp.Token)
 	if err != nil {
-		derr := errors.New("token Invalid")
+		derr := errors.New("token invalid")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
 
 	if dbOtp.ID == 0 {
-		derr := errors.New("token Invalid")
+		derr := errors.New("token invalid")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
 
 	dbOtp.ExpiredDate.Add(time.Minute * 30)
 	if dbOtp.ExpiredDate.Before(time.Now()) {
-		derr := errors.New("Token Expired")
+		derr := errors.New("token expired")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
