@@ -1,32 +1,37 @@
 name: Release
 on:
-  create:
+  push:
     tags:
       - v*
 
 jobs:
-  release:
-    name: Release on GitHub
+  build:
+    name: Create Release
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v1
 
-      - name: Validates GO releaser config
-        uses: docker://goreleaser/goreleaser:latest
-        with:
-          args: check
-
-      - name: Create release on GitHub
-        uses: docker://goreleaser/goreleaser:latest
-        with:
-          args: release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{secrets.DEPLOY_ACCESS}}
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_ACCESS }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
 
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
+
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.2
         with:
@@ -39,3 +44,23 @@ jobs:
             cd test 
             git clone git@github.com:greatfocus/gf-user.git 
             echo 'Deployment successful to digital ocean' 
+
+      - name: Copy file via scp
+        uses: appleboy/scp-action@master
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PORT: ${{ secrets.PORT }}
+          KEY: ${{ secrets.SSHKEY }}
+        with:
+          source: "."
+          target: "/opt/app"
+
+      - name: Executing remote  command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PORT: ${{ secrets.PORT }}
+          KEY: ${{ secrets.SSHKEY }}
+          script: cat /opt/app/README.md
