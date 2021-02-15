@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"database/sql"
 	"fmt"
 	"strconv"
 	"time"
@@ -231,22 +230,6 @@ func (repo *UserRepository) Delete(id int64) error {
 
 	repo.deleteCache()
 	return nil
-}
-
-// prepare users row
-func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
-	users := []models.User{}
-	for rows.Next() {
-		var user models.User
-		err := rows.Scan(&user.ID, &user.Type, &user.Email, &user.FailedAttempts, &user.LastAttempt,
-			&user.SuccessLogins, &user.ExpiredDate, &user.CreatedOn, &user.UpdatedOn, &user.Status, &user.Enabled)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
-	}
-
-	return users, nil
 }
 
 // getUserCache method get cache for user

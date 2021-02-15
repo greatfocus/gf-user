@@ -65,5 +65,4 @@ func (l *LoginController) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, result)
-	return
 }

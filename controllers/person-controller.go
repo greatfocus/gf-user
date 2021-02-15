@@ -82,7 +82,6 @@ func (p *PersonController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, createdPerson)
-	return
 }
 
 // Update method
@@ -119,7 +118,6 @@ func (p *PersonController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, createdPerson)
-	return
 }
 
 // Get method

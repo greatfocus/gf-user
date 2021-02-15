@@ -212,7 +212,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 	}
 
 	// generate token
-	token, err := u.jwt.CreateToken(userFound.ID, right.Role)
+	token, _ := u.jwt.CreateToken(userFound.ID, right.Role)
 	user.JWT = token
 	result := models.User{}
 	result.PrepareOutput(user)

@@ -63,7 +63,6 @@ func (c *ClientController) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, client)
-	return
 }
 
 // getClients method
@@ -101,8 +100,7 @@ func (c *ClientController) getClients(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		clients := []models.Client{}
-		clients, err = c.clientService.GetClients(lastID)
+		clients, err := c.clientService.GetClients(lastID)
 		if err != nil {
 			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
@@ -113,7 +111,6 @@ func (c *ClientController) getClients(w http.ResponseWriter, r *http.Request) {
 
 	derr := errors.New("invalid parameter")
 	responses.Error(w, http.StatusBadRequest, derr)
-	return
 }
 
 // Delete method

@@ -68,5 +68,4 @@ func (o *OtpController) validateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, createdOtp)
-	return
 }

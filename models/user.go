@@ -34,7 +34,7 @@ func (u *User) PrepareInput() error {
 	expire.AddDate(0, 3, 0)
 	var pass, err = utils.HashAndSalt([]byte(u.Password))
 	if err != nil {
-		return errors.New("Failed to create hash")
+		return errors.New("failed to create hash")
 	}
 
 	u.ID = 0

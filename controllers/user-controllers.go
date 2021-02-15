@@ -61,7 +61,6 @@ func (c *UserController) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responses.Success(w, http.StatusOK, user)
-	return
 }
 
 // getUsers method
@@ -99,8 +98,7 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		users := []models.User{}
-		users, err = c.userService.GetUsers(lastID)
+		users, err := c.userService.GetUsers(lastID)
 		if err != nil {
 			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
@@ -111,5 +109,4 @@ func (c *UserController) getUsers(w http.ResponseWriter, r *http.Request) {
 
 	derr := errors.New("invalid parameter")
 	responses.Error(w, http.StatusBadRequest, derr)
-	return
 }
