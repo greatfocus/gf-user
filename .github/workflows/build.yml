@@ -18,16 +18,16 @@ jobs:
         run: imports
         token: ${{ secrets.DEPLOY_ACCESS }}
 
-  # errcheck:
-  #   name: Errcheck
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@master
-  #   - name: check
-  #     uses: grandcolline/golang-github-actions@v1.1.0
-  #     with:
-  #       run: errcheck
-  #       token: ${{ secrets.DEPLOY_ACCESS }}
+  errcheck:
+    name: Errcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: errcheck
+        token: ${{ secrets.DEPLOY_ACCESS }}
 
   lint:
     name: Lint
@@ -58,28 +58,28 @@ jobs:
         run: shadow
         token: ${{ secrets.DEPLOY_ACCESS }}
 
-  # staticcheck:
-  #   name: StaticCheck
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@master
-  #   - name: check
-  #     uses: grandcolline/golang-github-actions@v1.1.0
-  #     with:
-  #       run: staticcheck
-  #       token: ${{ secrets.DEPLOY_ACCESS }}
+  staticcheck:
+    name: StaticCheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: staticcheck
+        token: ${{ secrets.DEPLOY_ACCESS }}
 
-  # sec:
-  #   name: Sec
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@master
-  #   - name: check
-  #     uses: grandcolline/golang-github-actions@v1.1.0
-  #     with:
-  #       run: sec
-  #       token: ${{ secrets.DEPLOY_ACCESS }}
-  #       flags: "-exclude=G104"
+  sec:
+    name: Sec
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: sec
+        token: ${{ secrets.DEPLOY_ACCESS }}
+        flags: "-exclude=G104"
 
   test:
     name: Test
