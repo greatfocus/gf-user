@@ -76,7 +76,7 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	if err := sendClientCredentials(u.notifyRepository, u.config, client); err != nil {
 		derr := errors.New("client registration failed")
 		log.Printf("Error: %v\n", err)
-		u.Delete(created.ID)
+		_ = u.Delete(created.ID)
 		return client, derr
 	}
 
