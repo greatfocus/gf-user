@@ -59,7 +59,12 @@ func (u *ClientService) Create(client models.Client) (models.Client, error) {
 	}
 
 	// Create client
-	client.PrepareInput()
+	err = client.PrepareInput()
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+		return client, err
+	}
+
 	created, err := u.clientRepository.Create(client)
 	if err != nil {
 		derr := errors.New("client registration failed")
@@ -118,7 +123,7 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 		derr := errors.New("client or Secret is invalid")
 		log.Printf("Error: %v\n", derr)
 		found.FailedAttempts = (found.FailedAttempts + 1)
-		u.clientRepository.UpdateLoginAttempt(found)
+		_ = u.clientRepository.UpdateLoginAttempt(found)
 		return client, derr
 	}
 
@@ -128,14 +133,13 @@ func (u *ClientService) Authenticate(client models.Client) (models.Client, error
 		derr := errors.New("client or Secret is invalid")
 		log.Printf("Error: %v\n", derr)
 		found.FailedAttempts = (found.FailedAttempts + 1)
-		u.clientRepository.UpdateLoginAttempt(found)
+		_ = u.clientRepository.UpdateLoginAttempt(found)
 		return client, derr
 	}
 
 	if found.FailedAttempts > 4 {
 		found.Enabled = false
 		err = u.clientRepository.UpdateLoginAttempt(found)
-
 		derr := errors.New("client account is locked")
 		log.Printf("Error: %v\n", err)
 		return client, derr

@@ -165,7 +165,10 @@ func (repo *UserRepository) GetUsers(lastID int64) ([]models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	users := []models.User{}
 	for rows.Next() {

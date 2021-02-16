@@ -11,6 +11,8 @@ import (
 
 // Entry point to the solution
 func main() {
+	var err error
+
 	// Get arguments
 	if os.Args[1] == "" {
 		panic("Pass the environment")
@@ -22,8 +24,16 @@ func main() {
 	// background task
 	tasks := task.Tasks{}
 	tasks.Init(&server)
-	server.Cron.Every(1).Sunday().At("19:00:00").Do(tasks.RunDatabaseScripts)
-	server.Cron.Every(1).Monday().At("01:00:00").Do(tasks.RebuildIndexes)
+	err = server.Cron.Every(1).Sunday().At("19:00:00").Do(tasks.RunDatabaseScripts)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = server.Cron.Every(1).Monday().At("01:00:00").Do(tasks.RebuildIndexes)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// start cron job
 	server.Cron.Start()
 
 	// start API service

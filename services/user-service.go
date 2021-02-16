@@ -92,7 +92,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err != nil {
 		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
-		u.userRepository.Delete(createdUser.ID)
+		_ = u.userRepository.Delete(createdUser.ID)
 		return user, derr
 	}
 
@@ -104,7 +104,7 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err != nil {
 		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
-		u.userRepository.Delete(createdUser.ID)
+		_ = u.userRepository.Delete(createdUser.ID)
 		return user, derr
 	}
 
@@ -113,8 +113,8 @@ func (u *UserService) CreateUser(user models.User) (models.User, error) {
 	if err := sendOTP(u.notifyRepository, u.config, createdUser); err != nil {
 		derr := errors.New("user registration failed")
 		log.Printf("Error: %v\n", err)
-		u.userRepository.Delete(createdUser.ID)
-		u.otpRepository.Delete(createToken.ID)
+		_ = u.userRepository.Delete(createdUser.ID)
+		_ = u.otpRepository.Delete(createToken.ID)
 		return user, derr
 	}
 
@@ -183,7 +183,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 		derr := errors.New("username of password is invalid")
 		log.Printf("Error: %v\n", derr)
 		userFound.FailedAttempts = (userFound.FailedAttempts + 1)
-		u.userRepository.UpdateLoginAttempt(userFound)
+		_ = u.userRepository.UpdateLoginAttempt(userFound)
 		return user, derr
 	}
 
@@ -208,7 +208,7 @@ func (u *UserService) Login(user models.User) (models.User, error) {
 
 	// send first time login message
 	if userFound.SuccessLogins == 1 {
-		sendFirstTimeLogin(u.notifyRepository, u.config, userFound)
+		_ = sendFirstTimeLogin(u.notifyRepository, u.config, userFound)
 	}
 
 	// generate token
@@ -262,7 +262,7 @@ func (u *UserService) ResetPassword(user models.User) (models.User, error) {
 		log.Println(err)
 	}
 
-	sendResetPassword(u.notifyRepository, u.config, userFound)
+	_ = sendResetPassword(u.notifyRepository, u.config, userFound)
 
 	result := models.User{}
 	result.PrepareOutput(user)

@@ -49,7 +49,10 @@ func (repo *ContactRepository) GetMessages(status string) ([]models.Contact, err
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	messages := []models.Contact{}
 	for rows.Next() {

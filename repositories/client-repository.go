@@ -158,7 +158,11 @@ func (repo *ClientRepository) GetClients(lastID int64) ([]models.Client, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() {
+		_ = rows.Close()
+	}()
+
 	result, err := getClientsFromRows(rows)
 	if err != nil {
 		return nil, err
