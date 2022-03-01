@@ -4,32 +4,28 @@ import (
 	"errors"
 	"time"
 
-	"github.com/greatfocus/gf-sframe/crypt"
+	"github.com/greatfocus/gf-sframe/util"
 )
 
 // Otp struct
 type Otp struct {
-	ID          int64     `json:"id,omitempty"`
-	UserID      int64     `json:"userid,omitempty"`
-	Email       string    `json:"email,omitempty"`
+	ID          int64     `json:"-"`
 	Token       int64     `json:"token,omitempty"`
+	Channel     string    `json:"channel,omitempty"`
 	ExpiredDate time.Time `json:"-"`
 	CreatedAt   time.Time `json:"-"`
 	UpdatedAt   time.Time `json:"-"`
-	Verified    bool      `json:"-"`
+	Verified    bool      `json:"verified,omitempty"`
+	Active      bool      `json:"active,omitempty"`
 }
 
 // PrepareInput initiliazes the User request object
 func (u *Otp) PrepareInput() {
-	// All users have expiry date of 30 minutes if they don't login
-	var expire = time.Now()
-	expire.Add(time.Minute * 30)
+	// All users have expiry date of 15 minutes if they don't login
+	var expire = time.Now().Add(time.Minute * 15)
 
 	// random token
-	var token = crypt.RandomNumber(5)
-
-	u.ID = 0
-	u.UserID = 0
+	var token = util.RandNumber(5)
 	u.Token = token
 	u.ExpiredDate = expire
 	u.CreatedAt = time.Now()
@@ -40,16 +36,24 @@ func (u *Otp) PrepareInput() {
 // PrepareOutput initiliazes the User request object
 func (u *Otp) PrepareOutput(otp Otp) {
 	u.Verified = otp.Verified
+	u.Token = otp.Token
 }
 
 // Validate check if request is valid
-func (u *Otp) Validate() error {
-
+func (u *Otp) ExistingTokenValidate() error {
 	if u.Token == 0 {
 		return errors.New("required token")
 	}
-	if u.Email == "" {
-		return errors.New("required email")
+	if u.Channel == "" {
+		return errors.New("requited channel")
+	}
+	return nil
+}
+
+// Validate check if request is valid
+func (u *Otp) NewTokenValidate() error {
+	if u.Channel == "" {
+		return errors.New("requited channel")
 	}
 	return nil
 }

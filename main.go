@@ -1,18 +1,14 @@
 package main
 
 import (
-	_ "github.com/greatfocus/gf-pq"
-	frame "github.com/greatfocus/gf-sframe"
+	"github.com/greatfocus/gf-sframe/server"
 	"github.com/greatfocus/gf-user/router"
+	_ "github.com/lib/pq"
 )
 
-// Entry point to the solution
+// main entry point to the service
 func main() {
-
-	server := frame.NewFrame("gf-user")
-	mux := router.LoadRouter(server.Server)
-	server.Start(mux)
+	service := server.NewServer("gf-user", "user")
+	service.Mux = router.LoadRouter(service)
+	service.Start()
 }
-
-// err = conn.StartConsumer("test-queue", "test-key", handler, 2)
-// conn.Publish("test-key", []byte(`{"message":"test"}`))

@@ -3,12 +3,13 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strconv"
 	"time"
 
-	cache "github.com/greatfocus/gf-sframe/cache"
 	"github.com/greatfocus/gf-sframe/database"
 	"github.com/greatfocus/gf-user/models"
+	cache "github.com/patrickmn/go-cache"
 )
 
 // rightRepositoryCacheKeys array
@@ -16,13 +17,13 @@ var rightRepositoryCacheKeys = []string{}
 
 // RightRepository struct
 type RightRepository struct {
-	db    *database.Conn
+	db    database.Database
 	cache *cache.Cache
 }
 
 // Init method
-func (repo *RightRepository) Init(db *database.Conn, cache *cache.Cache) {
-	repo.db = db
+func (repo *RightRepository) Init(database database.Database, cache *cache.Cache) {
+	repo.db = database
 	repo.cache = cache
 }
 
@@ -34,9 +35,9 @@ func (repo *RightRepository) CreateDefault(ctx context.Context, right models.Rig
 		returning id
   `
 	var id int64
-	err := repo.db.Insert(ctx, statement, right.UserID).Scan(&id)
-	if err != nil {
-		return right, err
+	id, inserted := repo.db.Insert(ctx, statement, right.UserID)
+	if !inserted {
+		return right, errors.New("create permissions failed")
 	}
 	createdRight := right
 	createdRight.ID = id

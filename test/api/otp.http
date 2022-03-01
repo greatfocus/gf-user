@@ -1,0 +1,31 @@
+@host = localhost:5001
+@contentType = application/json
+@bearer = nil
+
+
+
+### create token
+# @name createToken
+POST https://{{host}}/user/otp
+Content-Type: {{contentType}}
+
+{
+	"id": "xid8",
+	"params": {
+		"channel": "web"
+	}
+}
+
+### validate token
+# @name validateToken
+PUT https://{{host}}/user/otp
+Content-Type: {{contentType}}
+
+{
+	"id": "xid12",
+	"params": {
+		"channel": "web",
+		"token": 17791
+	}
+}
+

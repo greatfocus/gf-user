@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -18,67 +17,130 @@ import (
 type Otp struct {
 	OtpHandler func(http.ResponseWriter, *http.Request)
 	otpService *services.OtpService
-	meta       *server.Meta
+	server     *server.Server
 }
 
 // Init method
-func (o *Otp) Init(meta *server.Meta, otpService *services.OtpService) {
+func (o *Otp) Init(server *server.Server, otpService *services.OtpService) {
 	o.otpService = otpService
-	o.meta = meta
+	o.server = server
+}
+
+// ValidateRequest checks if request is valid
+func (o Otp) ValidateRequest(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	data, err := o.server.Request(w, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (o Otp) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		o.validateToken(w, r)
+		data, err := o.ValidateRequest(w, r)
+		if err == nil {
+			o.createToken(w, r, data)
+		}
+		return
+	}
+
+	if r.Method == http.MethodPut {
+		data, err := o.ValidateRequest(w, r)
+		if err == nil {
+			o.validateToken(w, r, data)
+		}
 		return
 	}
 
 	// catch all
 	// if no method is satisfied return an error
 	w.WriteHeader(http.StatusMethodNotAllowed)
-	w.Header().Add("Allow", "GET, POST, PUT, DELETE")
+	w.Header().Add("Allow", "POST, PUT")
 }
 
-// validateToken method
-func (o *Otp) validateToken(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+// validateToken method adds a new token
+func (o *Otp) createToken(w http.ResponseWriter, r *http.Request, data interface{}) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(o.server.Timeout)*time.Second)
 	defer cancel()
 
-	// Get body from request
-	body, err := ioutil.ReadAll(r.Body)
+	// validate if json object
+	body, err := json.Marshal(data)
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		o.meta.Error(w, r, derr)
+		o.server.Error(w, r, derr)
 		return
 	}
-	// validate if json object
 	otp := models.Otp{}
 	err = json.Unmarshal(body, &otp)
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		o.meta.Error(w, r, derr)
+		o.server.Error(w, r, derr)
 		return
 	}
 	// validate payload rules
-	err = otp.Validate()
+	err = otp.NewTokenValidate()
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		o.meta.Error(w, r, err)
+		o.server.Error(w, r, err)
 		return
 	}
 
 	// validate token
-	createdOtp, err := o.otpService.ValidateToken(ctx, otp)
+	createdOtp, err := o.otpService.CreateToken(ctx, otp, o.server.JWT.Secret())
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		o.meta.Error(w, r, err)
+		o.server.Error(w, r, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	o.meta.Success(w, r, createdOtp)
+	o.server.Success(w, r, createdOtp)
+}
+
+// validateToken method check if token is valid
+func (o *Otp) validateToken(w http.ResponseWriter, r *http.Request, data interface{}) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(o.server.Timeout)*time.Second)
+	defer cancel()
+
+	// validate if json object
+	body, err := json.Marshal(data)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		o.server.Error(w, r, derr)
+		return
+	}
+	otp := models.Otp{}
+	err = json.Unmarshal(body, &otp)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		o.server.Error(w, r, derr)
+		return
+	}
+	// validate payload rules
+	err = otp.ExistingTokenValidate()
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		o.server.Error(w, r, err)
+		return
+	}
+
+	// validate token
+	createdOtp, err := o.otpService.ValidateToken(ctx, o.server.JWT.Secret(), otp)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		o.server.Error(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	o.server.Success(w, r, createdOtp)
 }

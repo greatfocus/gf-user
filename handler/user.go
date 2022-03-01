@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -19,13 +19,13 @@ import (
 type User struct {
 	UserHandler func(http.ResponseWriter, *http.Request)
 	userService *services.UserService
-	meta        *server.Meta
+	server      *server.Server
 }
 
 // Init method
-func (c *User) Init(meta *server.Meta, userService *services.UserService) {
+func (c *User) Init(server *server.Server, userService *services.UserService) {
 	c.userService = userService
-	c.meta = meta
+	c.server = server
 }
 
 func (c User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -45,14 +45,14 @@ func (c User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // createUser method
 func (c *User) createUser(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(c.server.Timeout)*time.Second)
 	defer cancel()
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		c.meta.Error(w, r, derr)
+		c.server.Error(w, r, derr)
 		return
 	}
 	user := models.User{}
@@ -61,23 +61,23 @@ func (c *User) createUser(w http.ResponseWriter, r *http.Request) {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		c.meta.Error(w, r, derr)
+		c.server.Error(w, r, derr)
 		return
 	}
 
 	user, err = c.userService.CreateUser(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		c.meta.Error(w, r, err)
+		c.server.Error(w, r, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	c.meta.Success(w, r, user)
+	c.server.Success(w, r, user)
 }
 
 // getUsers method
 func (c *User) getUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(c.server.Timeout)*time.Second)
 	defer cancel()
 
 	var err error
@@ -92,19 +92,18 @@ func (c *User) getUsers(w http.ResponseWriter, r *http.Request) {
 			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			w.WriteHeader(http.StatusBadRequest)
-			c.meta.Error(w, r, derr)
+			c.server.Error(w, r, derr)
 			return
 		}
 
-		user := models.User{}
-		user, err = c.userService.GetUser(ctx, id)
+		user, err := c.userService.GetUser(ctx, id)
 		if err != nil {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			c.meta.Error(w, r, err)
+			c.server.Error(w, r, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		c.meta.Success(w, r, user)
+		c.server.Success(w, r, user)
 		return
 	}
 	if len(lastIDStr) != 0 {
@@ -113,22 +112,22 @@ func (c *User) getUsers(w http.ResponseWriter, r *http.Request) {
 			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			w.WriteHeader(http.StatusBadRequest)
-			c.meta.Error(w, r, derr)
+			c.server.Error(w, r, derr)
 			return
 		}
 
 		users, err := c.userService.GetUsers(ctx, lastID)
 		if err != nil {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			c.meta.Error(w, r, err)
+			c.server.Error(w, r, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		c.meta.Success(w, r, users)
+		c.server.Success(w, r, users)
 		return
 	}
 
 	derr := errors.New("invalid parameter")
-	c.meta.Error(w, r, derr)
+	c.server.Error(w, r, derr)
 	w.WriteHeader(http.StatusBadRequest)
 }

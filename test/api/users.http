@@ -1,17 +1,14 @@
-@hostname = 127.0.0.1
-@port = 5002
-@host = {{hostname}}:{{port}}
+@host = qa.localhost.com
 @contentType = application/json
 @bearer = nil
 
 
 ### create user
 # @name createUser
-POST http://{{host}}/user/register
+POST https://{{host}}/user/register
 Content-Type: {{contentType}}
 
 {
-	"type": "customer",
 	"email": "mucunga90@gmail.com",
 	"password": "1234"
 }
@@ -19,7 +16,7 @@ Content-Type: {{contentType}}
 
 ### user token
 # @name userToken
-POST http://{{host}}/user/token
+POST https://{{host}}/user/token
 Content-Type: {{contentType}}
 
 {
@@ -30,7 +27,7 @@ Content-Type: {{contentType}}
 
 ### login
 # @name login
-POST http://{{host}}/user/login
+POST https://{{host}}/user/login
 Content-Type: {{contentType}}
 
 {
@@ -41,7 +38,7 @@ Content-Type: {{contentType}}
 
 ### forgot password
 # @name forgotPassword
-POST http://{{host}}/user/forgotpassword
+POST https://{{host}}/user/forgotpassword
 Content-Type: {{contentType}}
 
 {
@@ -52,7 +49,7 @@ Content-Type: {{contentType}}
 ### get users
 # @name getusers
 @bearer = {{login.response.body.jwt}}
-GET http://{{host}}/user/users?lastId=20
+GET https://{{host}}/user/users?lastId=20
 Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
 
@@ -60,7 +57,7 @@ Authorization: Bearer {{bearer}}
 ### get user
 # @name getuser
 @bearer = {{login.response.body.jwt}}
-GET http://{{host}}/user/users?id=7
+GET https://{{host}}/user/users?id=7
 Content-Type: {{contentType}}
 Authorization: Bearer {{bearer}}
 

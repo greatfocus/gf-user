@@ -2,52 +2,50 @@ package repositories
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
-	cache "github.com/greatfocus/gf-sframe/cache"
 	"github.com/greatfocus/gf-sframe/database"
 	"github.com/greatfocus/gf-user/models"
+	cache "github.com/patrickmn/go-cache"
 )
 
 // OtpRepository struct
 type OtpRepository struct {
-	db    *database.Conn
+	db    database.Database
 	cache *cache.Cache
 }
 
 // Init method
-func (repo *OtpRepository) Init(db *database.Conn, cache *cache.Cache) {
-	repo.db = db
+func (repo *OtpRepository) Init(database database.Database, cache *cache.Cache) {
+	repo.db = database
 	repo.cache = cache
 }
 
 // Create method
-func (repo *OtpRepository) Create(ctx context.Context, otp models.Otp, channel string) (models.Otp, error) {
+func (repo *OtpRepository) Create(ctx context.Context, enKey string, otp models.Otp) (models.Otp, error) {
 	statement := `
-    INSERT INTO otp (userId, token, channel, expiredDate)
-    VALUES ($1, $2, $3, $4)
-    returning id
+    INSERT INTO otp (token, channel, expiredDate)
+    VALUES (PGP_SYM_ENCRYPT($1, '` + enKey + `'), $2, $3)
+	returning id
   `
-	var id int64
-	err := repo.db.Insert(ctx, statement, otp.UserID, otp.Token, channel, otp.ExpiredDate).Scan(&id)
-	if err != nil {
-		return otp, err
+	_, inserted := repo.db.Insert(ctx, statement, otp.Token, otp.Channel, otp.ExpiredDate)
+	if !inserted {
+		return otp, errors.New("create otp failed")
 	}
 	createdOtp := otp
-	createdOtp.ID = id
 	return createdOtp, nil
 }
 
 // GetByToken method
-func (repo *OtpRepository) GetByToken(ctx context.Context, userID int64, token int64) (models.Otp, error) {
+func (repo *OtpRepository) GetByToken(ctx context.Context, enKey string, token int64) (models.Otp, error) {
 	query := `
-	SELECT id, token, expiredDate
+	SELECT id, channel, expiredDate, verified, active
 	FROM otp
-	WHERE userId = $1 AND token = $2 AND verified = false
+	WHERE pgp_sym_decrypt(token::bytea, '` + enKey + `') = $1 and verified = false and active = true 
     `
-	row := repo.db.Select(ctx, query, userID, token)
+	row := repo.db.Select(ctx, query, token)
 	var otp models.Otp
-	err := row.Scan(&otp.ID, &otp.Token, &otp.ExpiredDate)
+	err := row.Scan(&otp.ID, &otp.Channel, &otp.ExpiredDate, &otp.Verified, &otp.Active)
 	if err != nil {
 		return models.Otp{}, err
 	}
@@ -60,24 +58,15 @@ func (repo *OtpRepository) Update(ctx context.Context, otp models.Otp) error {
 	query := `
     UPDATE otp
 	SET 
+		updatedOn=CURRENT_TIMESTAMP,
 		verified=$2,
-		updatedOn=CURRENT_TIMESTAMP
+		active=$3
     WHERE id=$1
   	`
-
-	res, err := repo.db.Update(ctx, query, otp.ID, true)
-	if err != nil {
-		return err
+	updated := repo.db.Update(ctx, query, otp.ID, otp.Verified, otp.Active)
+	if !updated {
+		return errors.New("update otp failed")
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got Update Otp for %d", otp.ID)
-	}
-
 	return nil
 }
 
@@ -86,18 +75,9 @@ func (repo *OtpRepository) Delete(ctx context.Context, id int64) error {
 	query := `
     delete from otp where id=$1
   	`
-	res, err := repo.db.Delete(ctx, query, id)
-	if err != nil {
-		return err
+	deleted := repo.db.Delete(ctx, query, id)
+	if !deleted {
+		return errors.New("update otp failed")
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated Otp for %d", id)
-	}
-
 	return nil
 }

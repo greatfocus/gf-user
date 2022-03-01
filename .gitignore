@@ -14,8 +14,14 @@ gf-user
 build/**
 
 # Dependency directories (remove the comment below to include it)
-vendor/
 __debug_bin
 
 # environment
 .env
+logs/**
+ssl/**
+*.txt
+*.log
+*.crt
+*.pem
+*.key

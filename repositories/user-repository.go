@@ -2,14 +2,14 @@ package repositories
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strconv"
 
 	"time"
 
-	cache "github.com/greatfocus/gf-sframe/cache"
 	"github.com/greatfocus/gf-sframe/database"
 	"github.com/greatfocus/gf-user/models"
+	cache "github.com/patrickmn/go-cache"
 )
 
 // rightRepositoryCacheKeys array
@@ -17,27 +17,27 @@ var userRepositoryCacheKeys = []string{}
 
 // UserRepository struct
 type UserRepository struct {
-	db    *database.Conn
+	db    database.Database
 	cache *cache.Cache
 }
 
 // Init method
-func (repo *UserRepository) Init(db *database.Conn, cache *cache.Cache) {
-	repo.db = db
+func (repo *UserRepository) Init(database database.Database, cache *cache.Cache) {
+	repo.db = database
 	repo.cache = cache
 }
 
 // CreateUser method
 func (repo *UserRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 	statement := `
-    insert into users (type, email, password, expiredDate, status)
+    insert into users (type, email, pgp_sym_decrypt(password::bytea,'elders2020'), expiredDate, status)
     values ($1, $2, $3, $4, $5)
     returning id
   `
 	var id int64
-	err := repo.db.Insert(ctx, statement, user.Type, user.Email, user.Password, user.ExpiredDate, user.Status).Scan(&id)
-	if err != nil {
-		return user, err
+	id, inserted := repo.db.Insert(ctx, statement, user.Type, user.Email, user.Password, user.ExpiredDate, user.Status)
+	if !inserted {
+		return user, errors.New("create user failed")
 	}
 	created := user
 	created.ID = id
@@ -101,17 +101,9 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, user models.User) er
 		updatedOn=CURRENT_TIMESTAMP
     where id=$1 and deleted=false
   	`
-	res, err := repo.db.Update(ctx, query, user.ID, user.Status, user.Enabled, user.FailedAttempts, user.ExpiredDate)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
+	updated := repo.db.Update(ctx, query, user.ID, user.Status, user.Enabled, user.FailedAttempts, user.ExpiredDate)
+	if updated {
+		return errors.New("update user failed")
 	}
 
 	repo.deleteCache()
@@ -131,17 +123,9 @@ func (repo *UserRepository) UpdateLoginAttempt(ctx context.Context, user models.
     where id=$1
   	`
 
-	res, err := repo.db.Update(ctx, query, user.ID, user.LastAttempt, user.SuccessLogins, user.FailedAttempts, user.Status, user.Enabled)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
+	updated := repo.db.Update(ctx, query, user.ID, user.LastAttempt, user.SuccessLogins, user.FailedAttempts, user.Status, user.Enabled)
+	if !updated {
+		return errors.New("update login attempt failed")
 	}
 
 	repo.deleteCache()
@@ -220,17 +204,9 @@ func (repo *UserRepository) Delete(ctx context.Context, id int64) error {
 	query := `
     delete from users where id=$1
   	`
-	res, err := repo.db.Delete(ctx, query, id)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated User for %d", id)
+	deleted := repo.db.Delete(ctx, query, id)
+	if !deleted {
+		return errors.New("delete user failed")
 	}
 
 	repo.deleteCache()

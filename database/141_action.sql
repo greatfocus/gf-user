@@ -9,9 +9,10 @@ CREATE TABLE IF NOT EXISTS action (
 
 INSERT INTO action (name, description)
 VALUES
-	('user_create', 'Action to allow create user'),
-	('user_activate', 'Action to allow user activate'),
-	('user_deactivate', 'Action to allow user deactivate'),
-	('user_delete', 'Action to allow delete user')
+	('register', 'Action to allow register user'),
+	('otpVerify', 'Action to allow verify OTP'),
+	('login', 'Action to allow Login user'),
+	('forgetPassword', 'Action to allow change of password'),
+	('manageUser', 'Action to allow create, fetch, update and remove user')
 ON CONFLICT (name) 
 DO NOTHING;

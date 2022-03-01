@@ -1,8 +1,8 @@
 DO $$
 DECLARE
-    usrId INTEGER := (SELECT id FROM users WHERE identifier = 'muthurimixphone@gmail.com');
+   usrId INTEGER := (SELECT id FROM users WHERE identifier = 'muthurimixphone@gmail.com');
 	register INTEGER := (SELECT id FROM action WHERE name='register');
-    otpVerify INTEGER := (SELECT id FROM action WHERE name='otpVerify');
+   otpVerify INTEGER := (SELECT id FROM action WHERE name='otpVerify');
 	lgin INTEGER := (SELECT id FROM action WHERE name='login');
 	forgetPassword INTEGER := (SELECT id FROM action WHERE name='forgetPassword');
 	manageUser INTEGER := (SELECT id FROM action WHERE name='manageUser');

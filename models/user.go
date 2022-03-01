@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	utils "github.com/greatfocus/gf-sframe/crypt"
+	"github.com/greatfocus/gf-sframe/crypt"
 )
 
 // User struct
@@ -28,14 +28,10 @@ type User struct {
 }
 
 // PrepareInput initiliazes the User request object
-func (u *User) PrepareInput() error {
+func (u *User) PrepareInput(secret string) error {
 	// All users have expiry date of 3 months if they don't login
-	var expire = time.Now()
-	expire.AddDate(0, 3, 0)
-	var pass, err = utils.NewHash([]byte(u.Password))
-	if err != nil {
-		return errors.New("failed to create hash")
-	}
+	var expire = time.Now().AddDate(0, 3, 0)
+	var pass = crypt.Encrypt(u.Password, secret)
 
 	u.ID = 0
 	u.Password = pass

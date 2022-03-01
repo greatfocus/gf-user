@@ -4,7 +4,7 @@ DECLARE
 BEGIN 
     -- Seed System User	
     IF NOT EXISTS (SELECT 1 FROM logins WHERE userId=usrId) THEN
-        INSERT INTO logins (userId, lastAttempt, failedAttempts, successLogins)
-        VALUES(usrId, CURRENT_TIMESTAMP, 0, 0);
+        INSERT INTO logins (userId, type)
+        VALUES(usrId, 'password');
     END IF;
 END $$

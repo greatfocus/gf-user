@@ -6,10 +6,12 @@ import (
 	"log"
 	"time"
 
-	utils "github.com/greatfocus/gf-sframe/crypt"
+	"github.com/greatfocus/gf-sframe/crypt"
+	"github.com/greatfocus/gf-sframe/database"
 	"github.com/greatfocus/gf-sframe/server"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
+	cache "github.com/patrickmn/go-cache"
 )
 
 // UserService struct
@@ -17,26 +19,26 @@ type UserService struct {
 	userRepository  *repositories.UserRepository
 	otpRepository   *repositories.OtpRepository
 	rightRepository *repositories.RightRepository
-	jwt             *server.JWT
+	jwt             server.JWT
 }
 
 // Init method
-func (u *UserService) Init(s *server.Meta) {
+func (u *UserService) Init(database database.Database, cache *cache.Cache, jwt server.JWT) {
 	u.userRepository = &repositories.UserRepository{}
-	u.userRepository.Init(s.DB, s.Cache)
+	u.userRepository.Init(database, cache)
 
 	u.otpRepository = &repositories.OtpRepository{}
-	u.otpRepository.Init(s.DB, s.Cache)
+	u.otpRepository.Init(database, cache)
 
 	u.rightRepository = &repositories.RightRepository{}
-	u.rightRepository.Init(s.DB, s.Cache)
+	u.rightRepository.Init(database, cache)
 
-	u.jwt = s.JWT
+	u.jwt = jwt
 }
 
 // CreateUser method
 func (u *UserService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	err := user.PrepareInput()
+	err := user.PrepareInput(u.jwt.Secret())
 	if err != nil {
 		return user, err
 	}
@@ -55,8 +57,7 @@ func (u *UserService) CreateUser(ctx context.Context, user models.User) (models.
 	// }
 
 	// check for duplicates
-	usersExist := models.User{}
-	usersExist, err = u.userRepository.GetByEmail(ctx, user.Email)
+	usersExist, err := u.userRepository.GetByEmail(ctx, user.Email)
 	if (models.User{}) != usersExist {
 		derr := errors.New("user already exist")
 		log.Printf("Error: %v\n", err)
@@ -81,28 +82,6 @@ func (u *UserService) CreateUser(ctx context.Context, user models.User) (models.
 		_ = u.userRepository.Delete(ctx, createdUser.ID)
 		return user, derr
 	}
-
-	// create new OTP
-	otp := models.Otp{}
-	otp.PrepareInput()
-	otp.UserID = createdUser.ID
-	_, err = u.otpRepository.Create(ctx, otp, "email")
-	if err != nil {
-		derr := errors.New("user registration failed")
-		log.Printf("Error: %v\n", err)
-		_ = u.userRepository.Delete(ctx, createdUser.ID)
-		return user, derr
-	}
-
-	// create alert
-	// createdUser.Token = createToken.Token
-	// if err := sendOTP(u.notifyRepository, u.config, createdUser); err != nil {
-	// 	derr := errors.New("user registration failed")
-	// 	log.Printf("Error: %v\n", err)
-	// 	_ = u.userRepository.Delete(createdUser.ID)
-	// 	_ = u.otpRepository.Delete(createToken.ID)
-	// 	return user, derr
-	// }
 
 	result := models.User{}
 	result.PrepareOutput(createdUser)
@@ -132,7 +111,7 @@ func (u *UserService) GetUsers(ctx context.Context, lastID int64) ([]models.User
 }
 
 // Login method
-func (u *UserService) Login(ctx context.Context, user models.User) (models.User, error) {
+func (u *UserService) Login(ctx context.Context, user models.User, origin string) (models.User, error) {
 	// check for duplicates
 	userFound, err := u.userRepository.GetPasswordByEmail(ctx, user.Email)
 	if err != nil {
@@ -164,8 +143,7 @@ func (u *UserService) Login(ctx context.Context, user models.User) (models.User,
 
 	// verify password
 	userFound.LastAttempt = time.Now()
-	valid, err := utils.CompareHash(userFound.Password, []byte(user.Password))
-	if !valid || err != nil {
+	if crypt.Decrypt(userFound.Password, u.jwt.Secret()) != user.Password {
 		derr := errors.New("username of password is invalid")
 		log.Printf("Error: %v\n", derr)
 		userFound.FailedAttempts = (userFound.FailedAttempts + 1)
@@ -198,7 +176,12 @@ func (u *UserService) Login(ctx context.Context, user models.User) (models.User,
 	// }
 
 	// generate token
-	token, _ := u.jwt.CreateToken(userFound.ID, right.Role, nil)
+
+	tokenInfo := server.TokenInfo{
+		ActorID: userFound.ID,
+		Origin:  origin,
+	}
+	token, _ := u.jwt.CreateToken(tokenInfo)
 	user.JWT = token
 	result := models.User{}
 	result.PrepareOutput(user)
@@ -233,7 +216,6 @@ func (u *UserService) ResetPassword(ctx context.Context, user models.User) (mode
 	// create new OTP
 	otp := models.Otp{}
 	otp.PrepareInput()
-	otp.UserID = userFound.ID
 	// createToken, err := u.otpRepository.Create(otp, "email")
 	// if err != nil {
 	// 	derr := errors.New("unexpected error occurred")

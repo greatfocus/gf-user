@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -18,7 +18,7 @@ import (
 type ForgotPassword struct {
 	ForgotPasswordHandler func(http.ResponseWriter, *http.Request)
 	userService           *services.UserService
-	meta                  *server.Meta
+	server                *server.Server
 }
 
 func (f ForgotPassword) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,21 +34,21 @@ func (f ForgotPassword) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Init method
-func (f *ForgotPassword) Init(meta *server.Meta, userService *services.UserService) {
+func (f *ForgotPassword) Init(server *server.Server, userService *services.UserService) {
 	f.userService = userService
-	f.meta = meta
+	f.server = server
 }
 
 // resetPassword method
 func (f *ForgotPassword) resetPassword(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(f.server.Timeout)*time.Second)
 	defer cancel()
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		f.meta.Error(w, r, derr)
+		f.server.Error(w, r, derr)
 		return
 	}
 	user := models.User{}
@@ -57,21 +57,21 @@ func (f *ForgotPassword) resetPassword(w http.ResponseWriter, r *http.Request) {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		f.meta.Error(w, r, derr)
+		f.server.Error(w, r, derr)
 		return
 	}
-	err = user.PrepareInput()
+	err = user.PrepareInput(f.server.JWT.Secret())
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		f.meta.Error(w, r, err)
+		f.server.Error(w, r, err)
 		return
 	}
 	err = user.Validate("otp")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
-		f.meta.Error(w, r, err)
+		f.server.Error(w, r, err)
 		return
 	}
 
@@ -79,9 +79,9 @@ func (f *ForgotPassword) resetPassword(w http.ResponseWriter, r *http.Request) {
 	result, err := f.userService.ResetPassword(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		f.meta.Error(w, r, err)
+		f.server.Error(w, r, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	f.meta.Success(w, r, result)
+	f.server.Success(w, r, result)
 }

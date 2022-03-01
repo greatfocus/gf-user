@@ -11,5 +11,7 @@ Features Available in API
 - Action Get
 - Permission Get
 - Permission Fetch
-- 
 
+
+
+# kubectl -n qa exec gf-user-deployment-79446d4568-nfh8j  -- netstat -tulpn

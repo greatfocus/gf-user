@@ -1,1 +1,1 @@
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_otp_get ON otp USING BTREE(userId, token);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_otp_get ON otp USING BTREE(token, verified, active);

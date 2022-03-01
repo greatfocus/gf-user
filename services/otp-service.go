@@ -6,9 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/greatfocus/gf-sframe/server"
+	"github.com/greatfocus/gf-sframe/database"
 	"github.com/greatfocus/gf-user/models"
 	"github.com/greatfocus/gf-user/repositories"
+	cache "github.com/patrickmn/go-cache"
 )
 
 // OtpService struct
@@ -18,62 +19,51 @@ type OtpService struct {
 }
 
 // Init method
-func (o *OtpService) Init(s *server.Meta) {
+func (o *OtpService) Init(database database.Database, cache *cache.Cache) {
 	o.userRepository = &repositories.UserRepository{}
-	o.userRepository.Init(s.DB, s.Cache)
+	o.userRepository.Init(database, cache)
 
 	o.otpRepository = &repositories.OtpRepository{}
-	o.otpRepository.Init(s.DB, s.Cache)
+	o.otpRepository.Init(database, cache)
 }
 
 // ValidateToken method
-func (o *OtpService) ValidateToken(ctx context.Context, otp models.Otp) (models.Otp, error) {
-	// get user via email
-	user, err := o.userRepository.GetByEmail(ctx, otp.Email)
-	if err != nil {
-		derr := errors.New("kindly initiate forget password request")
-		log.Printf("Error: %v\n", err)
-		return otp, derr
-	}
-
+func (o *OtpService) ValidateToken(ctx context.Context, enKey string, otp models.Otp) (models.Otp, error) {
 	// get token from DB
-	dbOtp, err := o.otpRepository.GetByToken(ctx, user.ID, otp.Token)
+	insertedOtp, err := o.otpRepository.GetByToken(ctx, enKey, otp.Token)
 	if err != nil {
 		derr := errors.New("token invalid")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
 
-	if dbOtp.ID == 0 {
-		derr := errors.New("token invalid")
-		log.Printf("Error: %v\n", err)
-		return otp, derr
-	}
-
-	dbOtp.ExpiredDate.Add(time.Minute * 30)
-	if dbOtp.ExpiredDate.Before(time.Now()) {
+	if insertedOtp.ExpiredDate.Before(time.Now()) {
 		derr := errors.New("token expired")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
 
-	// activate user and verify token
-	user.Status = "USER.VERIFIED"
-	user.Enabled = true
-	user.FailedAttempts = 0
-	err = o.userRepository.UpdateLoginAttempt(ctx, user)
+	if insertedOtp.Channel != otp.Channel || !insertedOtp.Active || insertedOtp.Verified {
+		derr := errors.New("invalid token")
+		log.Printf("Error: %v\n", err)
+		return otp, derr
+	}
+
+	insertedOtp.Verified = true
+	insertedOtp.Active = false
+	err = o.otpRepository.Update(ctx, insertedOtp)
 	if err != nil {
 		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
 		log.Printf("Error: %v\n", err)
 		return otp, derr
 	}
 
-	err = o.otpRepository.Update(ctx, dbOtp)
-	if err != nil {
-		derr := errors.New("unexpected error occurred. kindly initiate forget password request")
-		log.Printf("Error: %v\n", err)
-		return otp, derr
-	}
+	return insertedOtp, nil
+}
 
-	return otp, nil
+// CreateToken provides new otp
+func (o *OtpService) CreateToken(ctx context.Context, otp models.Otp, enKey string) (models.Otp, error) {
+	// create new OTP
+	otp.PrepareInput()
+	return o.otpRepository.Create(ctx, enKey, otp)
 }

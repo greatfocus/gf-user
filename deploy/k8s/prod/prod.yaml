@@ -9,14 +9,11 @@ metadata:
   name: gf-user-service
   namespace: prod
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: gf-user
   ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 5000
+    - port: 5001
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -28,7 +25,7 @@ metadata:
   annotations:
     rollout: ""
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gf-user
@@ -41,10 +38,20 @@ spec:
         - name: golang
           image: mucunga90/gf-user:prod
           imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 250Mi
+              cpu: "1"
+            requests:
+              memory: 100Mi
+              cpu: "0.1"
           ports:
-            - name: http
-              protocol: TCP
-              containerPort: 5000
+            - containerPort: 5001
           envFrom:
             - secretRef:
                 name: gf-user-secret
+
+# kubectl delete service gf-user-service 
+# kubectl delete deployment gf-user-deployment
+# kubectl delete persistentvolumeclaim gf-user-service-pv-claim
+# kubectl delete persistentvolume gf-user-service-pv-volume
