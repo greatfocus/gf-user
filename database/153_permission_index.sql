@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_permission_active ON permission USING BTREE(userId, deleted, enabled);

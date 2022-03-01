@@ -1,0 +1,100 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gf-user-db-pv-volume
+  namespace: qa
+  labels:
+    type: local
+    app: gf-user
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/postgres/gf_user"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gf-user-db-pv-claim
+  namespace: qa
+  labels:
+    app: gf-user
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gf-user-db-deployment
+  namespace: qa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gf-user
+  template:
+    metadata:
+      labels:
+        app: gf-user
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: gf-user-secret
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gf-user-secret
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gf-user-secret
+                  key: DB_PASSWORD
+          envFrom:
+            - secretRef:
+                name: gf-user-secret
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: gf-user-db-storage
+      volumes:
+        - name: gf-user-db-storage
+          persistentVolumeClaim:
+            claimName: gf-user-db-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gf-user-db-service
+  namespace: qa
+  labels:
+    app: gf-user
+spec:
+  type: NodePort
+  ports:
+    - port: 5432
+      nodePort: 30032
+      name: http
+  selector:
+   app: gf-user
+
+# kubectl delete service gf-user-db-service 
+# kubectl delete deployment gf-user-db-deployment
+# kubectl delete persistentvolumeclaim gf-user-db-pv-claim
+# kubectl delete persistentvolume gf-user-db-pv-volume

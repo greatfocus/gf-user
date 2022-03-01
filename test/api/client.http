@@ -1,0 +1,63 @@
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@bearer = nil
+
+
+### User Login
+# @name userLogin
+POST http://{{host}}/user/login HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+	"email": "muthurimixphone@gmail.com",
+	"password": "1234"
+}
+
+
+### create client
+# @name createClient
+@bearer = {{userLogin.response.body.jwt}}
+POST http://{{host}}/user/client HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+
+{
+	"email": "test3@gmail.com"
+}
+
+
+### client login
+# @name createLogin
+POST http://{{host}}/user/client/login
+Content-Type: {{contentType}}
+
+{
+	"email": "mucunga90@gmail.com",
+	"clientid": "c30affb5f0914492b8e844bc162d2909",
+	"secret": "afuFYAVmkBFmwVPwFJrG"
+}
+
+### Get Clients
+# @name getClients
+@bearer = {{userLogin.response.body.jwt}}
+GET http://{{host}}/user/client?lastId=20
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+
+
+### Get Client
+# @name getClient
+@bearer = {{userLogin.response.body.jwt}}
+GET http://{{host}}/user/client?id=3
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+
+
+### Delete Client
+# @name deleteClient
+@bearer = {{userLogin.response.body.jwt}}
+DELETE  http://{{host}}/user/client?id=2
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}

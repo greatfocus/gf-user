@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_enabled ON users USING BTREE(id, deleted, enabled);

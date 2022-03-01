@@ -1,0 +1,66 @@
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@bearer = nil
+
+
+### create user
+# @name createUser
+POST http://{{host}}/user/register
+Content-Type: {{contentType}}
+
+{
+	"type": "customer",
+	"email": "mucunga90@gmail.com",
+	"password": "1234"
+}
+
+
+### user token
+# @name userToken
+POST http://{{host}}/user/token
+Content-Type: {{contentType}}
+
+{
+	"email": "mucunga90@gmail.com",
+	"token": 17791
+}
+
+
+### login
+# @name login
+POST http://{{host}}/user/login
+Content-Type: {{contentType}}
+
+{
+	"email": "mucunga90@gmail.com",
+	"password": "1234"
+}
+
+
+### forgot password
+# @name forgotPassword
+POST http://{{host}}/user/forgotpassword
+Content-Type: {{contentType}}
+
+{
+	"email": "mucunga90@gmail.com"
+}
+
+
+### get users
+# @name getusers
+@bearer = {{login.response.body.jwt}}
+GET http://{{host}}/user/users?lastId=20
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+
+
+### get user
+# @name getuser
+@bearer = {{login.response.body.jwt}}
+GET http://{{host}}/user/users?id=7
+Content-Type: {{contentType}}
+Authorization: Bearer {{bearer}}
+

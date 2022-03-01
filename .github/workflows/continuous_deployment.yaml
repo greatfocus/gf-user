@@ -1,0 +1,224 @@
+# Trigger the workflow to deploy to qa environment only when:
+# - an existing pull request with any name/type is merged to the main or develop branch
+# - a commit is directly pushed to the main or develop branch
+  
+name: Continuous deployment
+  
+on:
+  push:
+    branches:
+      - main
+      - develop
+  
+jobs:
+
+  imports:
+    name: Imports
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: imports
+        token: ${{ secrets.DEPLOY_ACCESS }}
+
+  errcheck:
+    name: Errcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: errcheck
+        token: ${{ secrets.DEPLOY_ACCESS }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Lint Go Code
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin # temporary fix. See https://github.com/actions/setup-go/issues/14
+          go get -u golang.org/x/lint/golint 
+          make lint
+
+  shadow:
+    name: Shadow
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: shadow
+        token: ${{ secrets.DEPLOY_ACCESS }}
+
+  staticcheck:
+    name: StaticCheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: staticcheck
+        token: ${{ secrets.DEPLOY_ACCESS }}
+
+  sec:
+    name: Sec
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: check
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: sec
+        token: ${{ secrets.DEPLOY_ACCESS }}
+        flags: "-exclude=G104"
+
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ["1.16"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Vars
+        id: vars
+        run: |
+          echo "::set-output name=version_tag::${GITHUB_REF/refs\/tags\//}"
+          echo "::set-output name=go_cache::$(go env GOCACHE)"
+
+      - name: Cache the build cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.vars.outputs.go_cache }}
+          key: ${{ runner.os }}-go${{ matrix.go }}-release-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+                        ${{ runner.os }}-go${{ matrix.go }}-release
+
+      - name: Run Unit tests.
+        run: make test-coverage
+      
+      - name: Upload Coverage report to CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{secrets.DEPLOY_ACCESS}}
+          file: ./coverage.txt
+
+      - name: Build and Test
+        run: make test
+
+      - name: Test Coverage
+        run: make test-coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest 
+    needs: [imports, errcheck, lint, shadow, staticcheck, sec, test]
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Build
+        run: make build
+
+  setup:
+    needs: [build]
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.vars.outputs.repo }}
+      commit: ${{ steps.vars.outputs.commit }}
+    steps:
+      - name: Use repository
+        uses: actions/checkout@v2
+      - name: Build variables
+        id: vars
+        run: |
+          echo "::set-output name=repo::$GITHUB_REPOSITORY"
+          echo "::set-output name=commit::$(git rev-parse --short "$GITHUB_SHA")"
+      - name: Upload repository
+        uses: actions/upload-artifact@v2
+        with:
+          name: repository
+          path: |
+            ${{ github.workspace }}/deploy
+            ${{ github.workspace }}/docker
+            ${{ github.workspace }}/.dockerignore
+            ${{ github.workspace }}/main.go
+            ${{ github.workspace }}/main_test.go
+            ${{ github.workspace }}/go.mod
+            ${{ github.workspace }}/go.sum
+
+  docker:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repository
+        uses: actions/download-artifact@v2
+        with:
+          name: repository
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: ./docker/ci/Dockerfile
+          tags: mucunga90/gf-user:qa
+          # tags: ${{ needs.setup.outputs.repo }}:qa
+          build-args: COMMIT=${{ needs.setup.outputs.commit }}
+  
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repository
+        uses: actions/download-artifact@v2
+        with:
+          name: repository
+      - name: Install kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+          curl -LO "https://dl.k8s.io/v1.22.0/bin/linux/amd64/kubectl.sha256"
+          echo "$(<kubectl.sha256) kubectl" | sha256sum --check
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+      - name: Create kube config
+        run: |
+          mkdir -p $HOME/.kube/
+          echo "${{ secrets.KUBE_QA_URL }}" > $HOME/.kube/config
+          echo "${{ secrets.KUBE_QA_CONFIG }}" > $HOME/.kube/qa.yaml
+      - name: Deploy
+        run: |
+          kubectl --kubeconfig $HOME/.kube/config delete secret -n qa gf-user-secret
+          kubectl --kubeconfig $HOME/.kube/config create secret generic -n qa gf-user-secret --from-env-file=$HOME/.kube/qa.yaml
+          kubectl --kubeconfig $HOME/.kube/config apply -k deploy/k8s/qa
+          kubectl --kubeconfig $HOME/.kube/config patch deployment gf-user-deployment --namespace=qa -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"rollout\":\"`date +'%s'`\"}}}}}"

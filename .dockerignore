@@ -1,0 +1,10 @@
+bin/
+
+.dockerignore
+.gitignore
+*.md
+.env
+    
+.git/
+.idea/
+.DS_Store/

@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS users (
+	id BIGSERIAL PRIMARY KEY,
+	type VARCHAR(10) NOT NULL,
+	status VARCHAR(10) NOT NULL,
+	identifier VARCHAR(200) NOT NULL,	
+	password VARCHAR(200) NOT NULL,
+	createdOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updatedOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	deleted BOOLEAN NOT NULL default(false),
+	enabled BOOLEAN NOT NULL default(false),
+	system BOOLEAN NOT NULL default(false),
+	UNIQUE(identifier),
+	UNIQUE(identifier, password)
+);
