@@ -144,14 +144,10 @@ func initDatabase(logger *logrus.Logger) database.Database {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	sslmode := "require"
-	sslkey := os.Getenv("DB_SSL_KEY")
-	sslcert := os.Getenv("DB_SSL_CERT")
 	var sslkeyPath, sslcertPath, sslcaPath string
 
 	// prepare ssl connection files
-	if sslkey != "" && sslcert != "" {
-		sslkeyPath, sslcertPath, sslcaPath = getDatabaseCertificate()
-	}
+	sslkeyPath, sslcertPath, sslcaPath = getDatabaseCertificate()
 
 	port, err := strconv.ParseUint(os.Getenv("DB_PORT"), 0, 64)
 	if err != nil {
@@ -175,15 +171,20 @@ func initDatabase(logger *logrus.Logger) database.Database {
 	}
 
 	var psqlInfo string
-	if sslcaPath != "" {
+	if sslkeyPath != "" && sslcertPath != "" && sslcaPath != "" {
 		sslmode = "verify-full"
 		psqlInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s sslrootcert=%s sslkey=%s sslcert=%s",
 			host, port, user, password, databaseName, sslmode, sslcaPath, sslkeyPath, sslcertPath)
+	} else if sslkeyPath == "" && sslcertPath == "" && sslcaPath != "" {
+		sslmode = "verify-ca"
+		psqlInfo = fmt.Sprintf(
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s sslrootcert=%s",
+			host, port, user, password, databaseName, sslmode, sslcaPath)
 	} else {
 		psqlInfo = fmt.Sprintf(
-			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s sslkey=%s sslcert=%s",
-			host, port, user, password, databaseName, sslmode, sslkeyPath, sslcertPath)
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+			host, port, user, password, databaseName, sslmode)
 	}
 
 	// create database connection
@@ -322,13 +323,18 @@ func (s *Server) response(w http.ResponseWriter, r *http.Request, data interface
 }
 
 // Connect method make a database connection
-func getDatabaseCertificate() (cert, key, ca string) {
-	var root string
-	key = CreateSSLCert("postgresql-client.key", os.Getenv("DB_SSL_KEY"))
-	cert = CreateSSLCert("postgresql-client.crt", os.Getenv("DB_SSL_CERT"))
+func getDatabaseCertificate() (cert, key, root string) {
 	sslrootcert := os.Getenv("DB_ROOT_CA")
+	sslkey := os.Getenv("DB_SSL_KEY")
+	sslcert := os.Getenv("DB_SSL_CERT")
 	if sslrootcert != "" {
 		root = CreateSSLCert("postgresql-ca.crt", os.Getenv("DB_ROOT_CA"))
+	}
+	if sslkey != "" {
+		key = CreateSSLCert("postgresql-client.key", os.Getenv("DB_SSL_KEY"))
+	}
+	if sslcert != "" {
+		cert = CreateSSLCert("postgresql-client.crt", os.Getenv("DB_SSL_CERT"))
 	}
 	return key, cert, root
 }
