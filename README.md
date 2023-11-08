@@ -14,4 +14,4 @@ Features Available in API
 
 
 
-# kubectl -n qa exec gf-user-deployment-79446d4568-nfh8j  -- netstat -tulpn
+# kubectl -n qa exec gf-user-api-deployment-79446d4568-nfh8j  -- netstat -tulpn

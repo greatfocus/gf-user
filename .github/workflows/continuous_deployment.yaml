@@ -159,19 +159,12 @@ jobs:
           echo "${{ secrets.QA_CLUSTER_CLIENT_CERT }}" > $HOME/.kube/client.crt
           echo "${{ secrets.QA_CLUSTER_CLIENT_KEY }}" > $HOME/.kube/client.key
           echo "${{ secrets.QA_CLUSTER_ENV }}" > $HOME/.kube/qa.properties
-          echo DB_ROOT_CA=${{ secrets.QA_DB_ROOT_CA }} >> $HOME/.kube/qa.properties
-          echo DB_SSL_CERT=${{ secrets.QA_DB_SSL_CERT }} >> $HOME/.kube/qa.properties
-          echo DB_SSL_KEY=${{ secrets.QA_DB_SSL_KEY }} >> $HOME/.kube/qa.properties
-          echo API_SSL_CERT=${{ secrets.QA_API_SSL_CERT }} >> $HOME/.kube/qa.properties
-          echo API_SSL_KEY=${{ secrets.QA_API_SSL_KEY }} >> $HOME/.kube/qa.properties
+
           echo API_PRIVATE_KEY=${{ secrets.QA_API_PRIVATE_KEY }} >> $HOME/.kube/qa.properties
           echo API_PUBLIC_KEY=${{ secrets.QA_API_PUBLIC_KEY }} >> $HOME/.kube/qa.properties
           echo CLIENT_PUBLICKEY=${{ secrets.QA_CLIENT_PUBLICKEY }} >> $HOME/.kube/qa.properties
       - name: Deploy
         run: |
-          kubectl --kubeconfig $HOME/.kube/config delete configmap gf-user-db-config -n qa
-          kubectl --kubeconfig $HOME/.kube/config create configmap gf-user-db-config -n qa --from-file=deploy/k8s/qa/config/postgres/
           kubectl --kubeconfig $HOME/.kube/config delete secret -n qa gf-user-secret
           kubectl --kubeconfig $HOME/.kube/config create secret generic -n qa gf-user-secret --from-env-file=$HOME/.kube/qa.properties
           kubectl --kubeconfig $HOME/.kube/config apply -k deploy/k8s/qa
-          kubectl --kubeconfig $HOME/.kube/config patch deployment gf-user-deployment --namespace=qa -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"rollout\":\"`date +'%s'`\"}}}}}"

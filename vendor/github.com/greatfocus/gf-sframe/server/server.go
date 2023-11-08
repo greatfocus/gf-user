@@ -143,7 +143,7 @@ func initDatabase(logger *logrus.Logger) database.Database {
 	databaseName := os.Getenv("DB_NAME")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	sslmode := "require"
+	sslmode := "disable"
 	var sslkeyPath, sslcertPath, sslcaPath string
 
 	// prepare ssl connection files
@@ -171,7 +171,7 @@ func initDatabase(logger *logrus.Logger) database.Database {
 	}
 
 	var psqlInfo string
-	if sslkeyPath != "" && sslcertPath != "" && sslcaPath != "" {
+	if sslkeyPath != "" && sslcertPath != "" && sslcaPath == "" {
 		sslmode = "verify-full"
 		psqlInfo = fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s sslrootcert=%s sslkey=%s sslcert=%s",

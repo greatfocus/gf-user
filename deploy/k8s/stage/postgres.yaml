@@ -4,14 +4,14 @@ metadata:
   name: gf-user-db-pv-volume
   namespace: stage
 spec:
-  storageClassName: slow
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/data/postgres/gf_user"
+    path: "/data/greatfocus/gf_user_db"
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -19,20 +19,35 @@ metadata:
   name: gf-user-db-pv-claim
   namespace: stage
 spec:
-  storageClassName: slow
+  storageClassName: ""
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: gf-user-db-deployment
+  name: gf-user-db-service
   namespace: stage
 spec:
-  replicas: 1
+  type: NodePort
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      nodePort: 30007
+  selector:
+   app: gf-user-db-service
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gf-user-db-service
+  namespace: stage
+spec:
+  replicas: 2
   selector:
     matchLabels:
       app: gf-user-db-service
@@ -43,22 +58,10 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:10.4
+          image: postgres:16
           imagePullPolicy: "IfNotPresent"
-          resources:
-            limits:
-              memory: 512Mi
-              cpu: "1"
-            requests:
-              memory: 256Mi
-              cpu: "0.2"
           ports:
             - containerPort: 5432
-          args:
-            - -c
-            - hba_file=/etc/postgresql/gf-user/pg_hba.conf
-            - -c
-            - config_file=/etc/postgresql/gf-user/postgresql.conf
           env:
             - name: POSTGRES_DB
               valueFrom:
@@ -78,33 +81,13 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: gf-user-db-storage
-            - mountPath: /etc/postgresql/gf-user
-              name: gf-user-config-storage
       volumes:
         - name: gf-user-db-storage
           persistentVolumeClaim:
             claimName: gf-user-db-pv-claim
-        - name: gf-user-config-storage
-          configMap:
-            name: gf-user-db-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gf-user-db-service
-  namespace: stage
-spec:
-  type: NodePort
-  ports:
-    - port: 5432
-      targetPort: 5432
-      protocol: TCP
-      nodePort: 30007
-  selector:
-   app: gf-user-db-service
 
 # kubectl delete service gf-user-db-service 
-# kubectl delete deployment gf-user-db-deployment
+# kubectl delete statefulset gf-user-db-service
 # kubectl delete persistentvolumeclaim gf-user-db-pv-claim
 # kubectl delete persistentvolume gf-user-db-pv-volume
 # minikube service gf-user-db-service -n stage

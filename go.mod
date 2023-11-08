@@ -3,7 +3,7 @@ module github.com/greatfocus/gf-user
 go 1.21
 
 require (
-	github.com/greatfocus/gf-sframe v0.1.6
+	github.com/greatfocus/gf-sframe v0.1.8
 	github.com/lib/pq v1.10.9
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 )

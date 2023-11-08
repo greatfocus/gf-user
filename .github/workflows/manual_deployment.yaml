@@ -197,27 +197,6 @@ jobs:
           esac
 
           case ${{ github.event.inputs.env }} in
-                qa) echo DB_ROOT_CA=${{ secrets.QA_DB_ROOT_CA }} >> $HOME/.kube/qa.properties ;;
-            stage) echo DB_ROOT_CA=${{ secrets.STAGE_DB_ROOT_CA }} >> $HOME/.kube/stage.properties ;;
-              prod) DB_ROOT_CA=${{ secrets.PROD_DB_ROOT_CA }} >> $HOME/.kube/prod.properties ;;
-                *) echo "Invalid config"; exit 1;;
-          esac
-
-          case ${{ github.event.inputs.env }} in
-                qa) echo DB_SSL_CERT=${{ secrets.QA_DB_SSL_CERT }} >> $HOME/.kube/qa.properties ;;
-            stage) echo DB_SSL_CERT=${{ secrets.STAGE_DB_SSL_CERT }} >> $HOME/.kube/stage.properties ;;
-              prod) DB_SSL_CERT=${{ secrets.PROD_DB_SSL_CERT }} >> $HOME/.kube/prod.properties ;;
-                *) echo "Invalid config"; exit 1;;
-          esac
-
-          case ${{ github.event.inputs.env }} in
-                qa) echo DB_SSL_KEY=${{ secrets.QA_DB_SSL_KEY }} >> $HOME/.kube/qa.properties ;;
-            stage) echo DB_SSL_KEY=${{ secrets.STAGE_DB_SSL_KEY }} >> $HOME/.kube/stage.properties ;;
-              prod) DB_SSL_KEY=${{ secrets.PROD_DB_SSL_KEY }} >> $HOME/.kube/prod.properties ;;
-                *) echo "Invalid config"; exit 1;;
-          esac
-
-          case ${{ github.event.inputs.env }} in
                 qa) echo API_SSL_CERT=${{ secrets.QA_API_SSL_CERT }} >> $HOME/.kube/qa.properties ;;
             stage) echo API_SSL_CERT=${{ secrets.STAGE_API_SSL_CERT }} >> $HOME/.kube/stage.properties ;;
               prod) API_SSL_CERT=${{ secrets.PROD_API_SSL_CERT }} >> $HOME/.kube/prod.properties ;;
@@ -246,9 +225,6 @@ jobs:
           esac
       - name: Deploy
         run: |
-          kubectl --kubeconfig $HOME/.kube/config delete configmap gf-user-db-config -n ${{ github.event.inputs.env }}
-          kubectl --kubeconfig $HOME/.kube/config create configmap gf-user-db-config -n ${{ github.event.inputs.env }} --from-file=deploy/k8s/${{ github.event.inputs.env }}/config/postgres/
           kubectl --kubeconfig $HOME/.kube/config delete secret -n ${{ github.event.inputs.env }} gf-user-secret
           kubectl --kubeconfig $HOME/.kube/config create secret generic -n ${{ github.event.inputs.env }} gf-user-secret --from-env-file=$HOME/.kube/${{ github.event.inputs.env }}.properties
           kubectl --kubeconfig $HOME/.kube/config apply -k deploy/k8s/${{ github.event.inputs.env }}
-          kubectl --kubeconfig $HOME/.kube/config patch deployment gf-user-deployment --namespace=${{ github.event.inputs.env }} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"rollout\":\"`date +'%s'`\"}}}}}"
